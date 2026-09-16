@@ -5,7 +5,8 @@
 - Laravel 13 server-rendered Blade
 - Tailwind CSS 4 using CSS-first configuration in `resources/css/app.css`
 - Vite entry points in `resources/css/app.css` and `resources/js/app.js`
-- No React, Vue, Inertia, Livewire, Alpine, or other frontend framework without team agreement
+- Livewire 4 is available for scoped Participant Dashboard islands; do not turn a full dashboard shell into one component
+- No React, Vue, Inertia, or other frontend framework without team agreement
 
 ## Views and layouts
 
@@ -16,7 +17,11 @@
 - Participant Dashboard pages live in `dashboard` and must use the dashboard layout.
 - Public-page ownership is organized by feature: Home, Pre-Event 1, Pre-Event 2, and Main Event developers should keep feature-specific work in their own page directory.
 
-Use layouts with Blade inheritance, for example `@extends('layouts.public')`, `@section('title', 'Page title')`, and `@section('content')`. Layouts provide `title` and `content` sections; the dashboard layout also provides `sidebar`.
+Use layouts with Blade inheritance, for example `@extends('layouts.public')`, `@section('title', 'Page title')`, and `@section('content')`. Layouts provide `title` and `content` sections; the dashboard layout provides the shared navigation shell.
+
+The dashboard navigation and page shell stay Blade. `App\\Livewire\\Dashboard\\Overview` is a scoped Livewire island for the Overview page only. It has no database query or polling; its temporary data is isolated in `App\\Support\\Dashboard\\DashboardOverviewState`.
+
+Review the overview states using the closed `Prototype state` control, or add `?scenario=first_time_user`, `active_participant`, `revision_required`, or `payment_required` to `/dashboard`. Replace that state provider with backend-derived view-state when the domain layer is ready.
 
 ## Tokens
 
