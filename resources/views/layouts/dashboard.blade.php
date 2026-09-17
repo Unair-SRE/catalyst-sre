@@ -10,9 +10,10 @@
         @livewireStyles
     </head>
     <body class="bg-catalyst-background font-sans text-catalyst-ink antialiased">
+        @php($dashboardNavigation = request()->routeIs('dashboard.registration.*') ? 'registration' : 'overview')
         <div class="min-h-screen lg:grid lg:grid-cols-[16rem_minmax(0,1fr)]">
             <aside class="hidden border-catalyst-grey/30 border-r bg-white lg:block" aria-label="Dashboard navigation">
-                <x-dashboard.navigation />
+                <x-dashboard.navigation :active="$dashboardNavigation" />
             </aside>
 
             <div class="min-w-0">
@@ -31,7 +32,7 @@
                                 </svg>
                             </summary>
                             <div class="absolute right-0 top-full z-20 mt-2 w-72 rounded-lg border border-catalyst-grey/30 bg-white p-2 shadow-lg sm:w-80">
-                                <x-dashboard.navigation :show-brand="false" />
+                                <x-dashboard.navigation :active="$dashboardNavigation" :show-brand="false" />
                             </div>
                         </details>
                     </div>

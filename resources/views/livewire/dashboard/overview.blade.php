@@ -48,10 +48,16 @@
                                     <h3 class="font-display text-xl font-semibold tracking-tight text-catalyst-black">{{ $action['title'] }}</h3>
                                     <p class="mt-2 text-sm leading-6 text-catalyst-ink/80">{{ $action['description'] }}</p>
                                 </div>
-                                <button class="mt-4 inline-flex w-full shrink-0 items-center justify-center bg-linear-to-b from-catalyst-primary to-catalyst-green px-4 py-3 text-sm font-medium text-white opacity-60 sm:mt-0 sm:w-auto" type="button" disabled title="This flow is not available in the prototype yet">
-                                    {{ $action['cta'] }}
-                                    <span class="sr-only">Unavailable until this feature is implemented</span>
-                                </button>
+                                @if ($action['href'])
+                                    <a class="mt-4 inline-flex w-full shrink-0 items-center justify-center bg-linear-to-b from-catalyst-primary to-catalyst-green px-4 py-3 text-sm font-medium text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-catalyst-primary sm:mt-0 sm:w-auto" href="{{ $action['href'] }}">
+                                        {{ $action['cta'] }}
+                                    </a>
+                                @else
+                                    <button class="mt-4 inline-flex w-full shrink-0 items-center justify-center bg-linear-to-b from-catalyst-primary to-catalyst-green px-4 py-3 text-sm font-medium text-white opacity-60 sm:mt-0 sm:w-auto" type="button" disabled title="This flow is not available in the prototype yet">
+                                        {{ $action['cta'] }}
+                                        <span class="sr-only">Unavailable until this feature is implemented</span>
+                                    </button>
+                                @endif
                             </article>
                         @endforeach
                     </div>

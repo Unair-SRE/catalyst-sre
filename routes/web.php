@@ -21,3 +21,11 @@ Route::get('/main-event', function () {
 Route::get('/dashboard', function () {
     return view('dashboard.index');
 })->name('dashboard.index');
+
+Route::get('/dashboard/registration', function () {
+    return view('dashboard.registration.index');
+})->name('dashboard.registration.index');
+
+Route::get('/dashboard/registration/{competition}', function (string $competition) {
+    return view('dashboard.registration.show', ['competition' => $competition]);
+})->whereIn('competition', ['mcc', 'bcc', 'bpc'])->name('dashboard.registration.show');

@@ -27,13 +27,12 @@
             <p class="px-2 text-xs font-medium uppercase tracking-widest text-catalyst-grey">Competition</p>
             <ul class="mt-2 space-y-1">
                 <li>
-                    <span class="flex items-center gap-3 px-2 py-2 text-sm text-catalyst-grey" aria-disabled="true">
+                    <a class="flex items-center gap-3 rounded-md px-2 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-catalyst-primary {{ $active === 'registration' ? 'font-semibold text-catalyst-ink' : 'font-medium text-catalyst-grey' }}" href="{{ route('dashboard.registration.index') }}" @if ($active === 'registration') aria-current="page" @endif>
                         <svg class="size-4" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                             <path d="M5 2.5h7l3 3v12H5zM12 2.5v3h3M7.5 10h5M7.5 13h5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" />
                         </svg>
                         Registration
-                        <span class="sr-only">Coming soon</span>
-                    </span>
+                    </a>
                 </li>
                 <li>
                     <span class="flex items-center gap-3 px-2 py-2 text-sm text-catalyst-grey" aria-disabled="true">

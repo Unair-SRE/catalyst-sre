@@ -254,12 +254,18 @@ final class DashboardOverviewState
                 ],
             };
 
+            $registrationHref = in_array($action['type'], ['registration_draft', 'registration_revision'], true)
+                || ($action['type'] === 'payment_required' && ($action['payment_context'] ?? 'competition') === 'competition')
+                ? route('dashboard.registration.show', ['competition' => strtolower((string) $competition)])
+                : null;
+
             return [
                 ...$action,
                 'title' => $title,
                 'description' => $description,
                 'cta' => $cta,
                 'accent' => $accent,
+                'href' => $registrationHref,
             ];
         }, $actions);
 

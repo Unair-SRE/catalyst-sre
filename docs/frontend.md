@@ -23,6 +23,14 @@ The dashboard navigation and page shell stay Blade. `App\\Livewire\\Dashboard\\O
 
 Review the overview states using the closed `Prototype state` control, or add `?scenario=first_time_user`, `active_participant`, `revision_required`, or `payment_required` to `/dashboard`. Replace that state provider with backend-derived view-state when the domain layer is ready.
 
+## Participant Dashboard Registration
+
+`/dashboard/registration` uses `RegistrationIndex` and `/dashboard/registration/{competition}` uses `RegistrationDetail`. Their mock state is isolated in `App\\Support\\Dashboard\\DashboardRegistrationState`; no database query or persistence is involved.
+
+Use `?scenario=first_time_user` or `mixed_registration` for the index. Detail supports `draft`, `submitted`, `under_review`, `revision_required`, `verified`, `rejected`, `payment_rejected`, and `payment_waived`. Registration routes accept only `mcc`, `bcc`, and `bpc`.
+
+The prototype's QRIS and WhatsApp/contact URLs are placeholders. Replace them with backend-provided assets and URLs when those integrations are available.
+
 ## Tokens
 
 Use Tailwind token utilities rather than repeating brand hex values:
