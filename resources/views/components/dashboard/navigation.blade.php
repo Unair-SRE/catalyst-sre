@@ -35,13 +35,12 @@
                     </a>
                 </li>
                 <li>
-                    <span class="flex items-center gap-3 px-2 py-2 text-sm text-catalyst-grey" aria-disabled="true">
+                    <a class="flex items-center gap-3 rounded-md px-2 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-catalyst-primary {{ $active === 'submission' ? 'font-semibold text-catalyst-ink' : 'font-medium text-catalyst-grey' }}" href="{{ route('dashboard.submission.index') }}" @if ($active === 'submission') aria-current="page" @endif>
                         <svg class="size-4" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                             <path d="M10 3v9m0 0 3.5-3.5M10 12 6.5 8.5M4 15.5h12" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" />
                         </svg>
                         Submission
-                        <span class="sr-only">Coming soon</span>
-                    </span>
+                    </a>
                 </li>
             </ul>
         </div>
@@ -50,13 +49,12 @@
             <p class="px-2 text-xs font-medium uppercase tracking-widest text-catalyst-grey">Exhibition</p>
             <ul class="mt-2">
                 <li>
-                    <span class="flex items-center gap-3 px-2 py-2 text-sm text-catalyst-grey" aria-disabled="true">
+                    <a class="flex items-center gap-3 rounded-md px-2 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-catalyst-primary {{ $active === 'summit-pass' ? 'font-semibold text-catalyst-ink' : 'font-medium text-catalyst-grey' }}" href="{{ route('dashboard.summit-pass.index') }}" @if ($active === 'summit-pass') aria-current="page" @endif>
                         <svg class="size-4" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                             <path d="M3 6.5h14v8H3zM6 6.5V4.75A1.75 1.75 0 0 1 7.75 3h4.5A1.75 1.75 0 0 1 14 4.75V6.5M7 11h6" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" />
                         </svg>
                         Summit Pass
-                        <span class="sr-only">Coming soon</span>
-                    </span>
+                    </a>
                 </li>
             </ul>
         </div>
@@ -65,14 +63,13 @@
             <p class="px-2 text-xs font-medium uppercase tracking-widest text-catalyst-grey">Others</p>
             <ul class="mt-2">
                 <li>
-                    <span class="flex items-center gap-3 px-2 py-2 text-sm text-catalyst-grey" aria-disabled="true">
+                    <a class="flex items-center gap-3 rounded-md px-2 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-catalyst-primary {{ $active === 'profile' ? 'font-semibold text-catalyst-ink' : 'font-medium text-catalyst-grey' }}" href="{{ route('dashboard.profile.index') }}" @if ($active === 'profile') aria-current="page" @endif>
                         <svg class="size-4" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                             <circle cx="10" cy="6.5" r="3" stroke="currentColor" stroke-width="1.5" />
                             <path d="M4.5 17c.7-2.7 2.5-4 5.5-4s4.8 1.3 5.5 4" stroke="currentColor" stroke-linecap="round" stroke-width="1.5" />
                         </svg>
                         Profile
-                        <span class="sr-only">Coming soon</span>
-                    </span>
+                    </a>
                 </li>
             </ul>
         </div>

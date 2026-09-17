@@ -27,7 +27,11 @@
                     @if ($state['registration_status'] === 'REVISION_REQUIRED')
                         <button class="mt-4 bg-catalyst-primary px-4 py-3 text-sm font-medium text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-catalyst-primary" type="button" wire:click="updateRegistration">Update Registration</button>
                     @elseif ($state['registration_status'] === 'VERIFIED')
-                        <button class="mt-4 bg-catalyst-primary px-4 py-3 text-sm font-medium text-white opacity-60" type="button" disabled title="Submission is not available in this prototype">Go to Submission<span class="sr-only">Unavailable until submission is implemented</span></button>
+                        @if ($state['submission_route'])
+                            <a class="mt-4 inline-flex bg-catalyst-primary px-4 py-3 text-sm font-medium text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-catalyst-primary" href="{{ $state['submission_route'] }}">Go to Submission</a>
+                        @else
+                            <button class="mt-4 bg-catalyst-primary px-4 py-3 text-sm font-medium text-white opacity-60" type="button" disabled>Go to Submission<span class="sr-only">Submission is not available for this stage</span></button>
+                        @endif
                     @elseif ($state['registration_status'] === 'REJECTED')
                         <a class="mt-4 inline-flex border border-catalyst-primary px-4 py-3 text-sm font-medium text-catalyst-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-catalyst-primary" href="{{ $state['contact_url'] }}">Contact Catalyst</a>
                     @endif

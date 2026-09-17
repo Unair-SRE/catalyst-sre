@@ -127,6 +127,9 @@ final class DashboardRegistrationState
         return [
             'competition' => $competition,
             ...$registration,
+            'submission_route' => $registration['submission']['state'] === 'available'
+                ? route('dashboard.submission.show', ['competition' => $competition['slug'], 'stage' => 'stage-1'])
+                : null,
             'contact_url' => 'https://example.com/catalyst-contact',
             'whatsapp_url' => 'https://example.com/catalyst-whatsapp-group',
         ];
@@ -286,9 +289,9 @@ final class DashboardRegistrationState
     private function accessStatus(string $access): array
     {
         return match ($access) {
-            'available' => ['label' => 'Available', 'tone' => 'success'],
-            'closed' => ['label' => 'Closed', 'tone' => 'error'],
-            default => ['label' => 'Locked', 'tone' => 'neutral'],
+            'available' => ['state' => 'available', 'label' => 'Available', 'tone' => 'success'],
+            'closed' => ['state' => 'closed', 'label' => 'Closed', 'tone' => 'error'],
+            default => ['state' => 'locked', 'label' => 'Locked', 'tone' => 'neutral'],
         };
     }
 }

@@ -114,10 +114,7 @@
                         <p class="text-sm text-catalyst-primary">{{ $state['summit_pass']['status'] }}</p>
                         <h3 class="mt-3 font-display text-2xl font-semibold tracking-tight">{{ $state['summit_pass']['name'] }}</h3>
                         <p class="mt-2 text-sm text-catalyst-ink/70">{{ $state['summit_pass']['date'] }}</p>
-                        <button class="mt-6 text-sm font-medium text-catalyst-primary underline underline-offset-4 opacity-60" type="button" disabled title="Summit Pass details are not available in the prototype yet">
-                            {{ $state['summit_pass']['cta'] }}
-                            <span class="sr-only">Unavailable until this feature is implemented</span>
-                        </button>
+                        <a class="mt-6 inline-flex text-sm font-medium text-catalyst-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-catalyst-primary" href="{{ $state['summit_pass_cta']['href'] }}">{{ $state['summit_pass_cta']['label'] }}</a>
                     </article>
                 @else
                     <div class="mt-4 border border-catalyst-grey/30 bg-white px-6 py-10 sm:px-10">
@@ -125,10 +122,7 @@
                             <h3 class="font-display text-xl font-semibold tracking-tight">Your Summit Pass isn't active yet</h3>
                             <p class="mt-2 text-sm leading-6 text-catalyst-ink/70">Join the Catalyst Summit experience with Talkshow and Exhibition access.</p>
                             @if ($state['summit_sales'] === 'open')
-                                <button class="mt-5 inline-flex items-center justify-center bg-linear-to-b from-catalyst-primary to-catalyst-green px-4 py-3 text-sm font-medium text-white opacity-60" type="button" disabled title="Summit Pass purchase is not available in the prototype yet">
-                                    Get Summit Pass
-                                    <span class="sr-only">Unavailable until purchase is implemented</span>
-                                </button>
+                                <a class="mt-5 inline-flex items-center justify-center bg-linear-to-b from-catalyst-primary to-catalyst-green px-4 py-3 text-sm font-medium text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-catalyst-primary" href="{{ $state['summit_pass_cta']['href'] }}">{{ $state['summit_pass_cta']['label'] }}</a>
                             @else
                                 <a class="mt-5 inline-flex items-center justify-center border border-catalyst-primary px-4 py-3 text-sm font-medium text-catalyst-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-catalyst-primary" href="{{ route('main-event.index') }}">
                                     View Main Event

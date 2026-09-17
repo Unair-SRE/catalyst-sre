@@ -42,6 +42,7 @@ final class DashboardOverviewState
             'registrations' => [],
             'actions' => [],
             'summit_pass' => null,
+            'summit_pass_state' => 'NO_PASS',
             'summit_sales' => 'open',
             'timeline' => [
                 [
@@ -122,6 +123,7 @@ final class DashboardOverviewState
                     [
                         'type' => 'submission_open',
                         'competition' => 'MCC',
+                        'stage' => 'stage-1',
                         'deadline_at' => '2026-10-10 23:59:00',
                     ],
                 ],
@@ -129,8 +131,8 @@ final class DashboardOverviewState
                     'name' => 'Summit Pass',
                     'status' => 'Active',
                     'date' => '22 November 2026',
-                    'cta' => 'View pass',
                 ],
+                'summit_pass_state' => 'VERIFIED',
             ]),
             'revision_required' => array_replace($state, [
                 'registrations' => [
@@ -153,6 +155,7 @@ final class DashboardOverviewState
                 ],
             ]),
             'payment_required' => array_replace($state, [
+                'summit_pass_state' => 'DRAFT',
                 'registrations' => [
                     [
                         'code' => 'BCC',
@@ -191,6 +194,7 @@ final class DashboardOverviewState
         ];
         $state['actions'] = $this->normaliseActions($state['actions']);
         $state['upcoming_event'] = $this->upcomingEvent($state['timeline'], $now);
+        $state['summit_pass_cta'] = $this->summitPassCta($state['summit_pass_state']);
 
         return $state;
     }
@@ -254,10 +258,17 @@ final class DashboardOverviewState
                 ],
             };
 
-            $registrationHref = in_array($action['type'], ['registration_draft', 'registration_revision'], true)
+            $href = in_array($action['type'], ['registration_draft', 'registration_revision'], true)
                 || ($action['type'] === 'payment_required' && ($action['payment_context'] ?? 'competition') === 'competition')
                 ? route('dashboard.registration.show', ['competition' => strtolower((string) $competition)])
-                : null;
+                : ($action['type'] === 'submission_open'
+                    ? route('dashboard.submission.show', [
+                        'competition' => strtolower((string) $competition),
+                        'stage' => $action['stage'] ?? 'stage-1',
+                    ])
+                    : ($action['type'] === 'payment_required' && ($action['payment_context'] ?? null) === 'summit_pass'
+                        ? route('dashboard.summit-pass.index', ['scenario' => 'purchase'])
+                        : null));
 
             return [
                 ...$action,
@@ -265,7 +276,7 @@ final class DashboardOverviewState
                 'description' => $description,
                 'cta' => $cta,
                 'accent' => $accent,
-                'href' => $registrationHref,
+                'href' => $href,
             ];
         }, $actions);
 
@@ -280,6 +291,30 @@ final class DashboardOverviewState
         });
 
         return $actions;
+    }
+
+    /**
+     * @return array{label: string, href: string}
+     */
+    private function summitPassCta(string $state): array
+    {
+        return [
+            'label' => match ($state) {
+                'WAITING_VERIFICATION' => 'View Payment Status',
+                'VERIFIED', 'CHECKED_IN' => 'View Summit Pass',
+                'DRAFT', 'PURCHASE', 'REJECTED' => 'Continue Purchase',
+                default => 'Get Summit Pass',
+            },
+            'href' => route('dashboard.summit-pass.index', [
+                'scenario' => match ($state) {
+                    'WAITING_VERIFICATION' => 'payment_waiting',
+                    'VERIFIED' => 'verified',
+                    'CHECKED_IN' => 'checked_in',
+                    'DRAFT', 'PURCHASE', 'REJECTED' => 'purchase',
+                    default => 'no_pass',
+                },
+            ]),
+        ];
     }
 
     /**

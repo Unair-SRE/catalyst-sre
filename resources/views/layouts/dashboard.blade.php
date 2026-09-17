@@ -10,7 +10,13 @@
         @livewireStyles
     </head>
     <body class="bg-catalyst-background font-sans text-catalyst-ink antialiased">
-        @php($dashboardNavigation = request()->routeIs('dashboard.registration.*') ? 'registration' : 'overview')
+        @php($dashboardNavigation = match (true) {
+            request()->routeIs('dashboard.registration.*') => 'registration',
+            request()->routeIs('dashboard.submission.*') => 'submission',
+            request()->routeIs('dashboard.summit-pass.*') => 'summit-pass',
+            request()->routeIs('dashboard.profile.*') => 'profile',
+            default => 'overview',
+        })
         <div class="min-h-screen lg:grid lg:grid-cols-[16rem_minmax(0,1fr)]">
             <aside class="hidden border-catalyst-grey/30 border-r bg-white lg:block" aria-label="Dashboard navigation">
                 <x-dashboard.navigation :active="$dashboardNavigation" />

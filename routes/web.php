@@ -29,3 +29,21 @@ Route::get('/dashboard/registration', function () {
 Route::get('/dashboard/registration/{competition}', function (string $competition) {
     return view('dashboard.registration.show', ['competition' => $competition]);
 })->whereIn('competition', ['mcc', 'bcc', 'bpc'])->name('dashboard.registration.show');
+
+Route::get('/dashboard/submission', function () {
+    return view('dashboard.submission.index');
+})->name('dashboard.submission.index');
+
+Route::get('/dashboard/submission/{competition}/{stage?}', function (string $competition, ?string $stage = null) {
+    return view('dashboard.submission.show', ['competition' => $competition, 'stage' => $stage]);
+})->whereIn('competition', ['mcc', 'bcc', 'bpc'])
+    ->where('stage', '[a-z0-9-]+')
+    ->name('dashboard.submission.show');
+
+Route::get('/dashboard/summit-pass', function () {
+    return view('dashboard.summit-pass.index');
+})->name('dashboard.summit-pass.index');
+
+Route::get('/dashboard/profile', function () {
+    return view('dashboard.profile.index');
+})->name('dashboard.profile.index');
