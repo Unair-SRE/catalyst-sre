@@ -1,9 +1,9 @@
 <div>
-    <x-ui.container class="py-8 sm:py-10 lg:py-12">
+    <x-ui.container class="py-8 sm:py-10 lg:py-14">
         <div class="space-y-10 lg:space-y-14">
-            <header class="max-w-3xl">
-                <p class="text-sm text-catalyst-grey">Competition workspace</p>
-                <h1 class="mt-5 font-display text-3xl font-semibold tracking-tight text-catalyst-black sm:text-4xl">Submission</h1>
+            <header class="dashboard-page-heading max-w-3xl">
+                <p class="text-xs font-medium tracking-wide text-catalyst-muted">Competition workspace</p>
+                <h1 class="mt-5 font-display text-3xl font-medium leading-tight tracking-tight text-catalyst-ink sm:text-4xl xl:text-5xl">Submission</h1>
                 <p class="mt-4 text-base leading-7 text-catalyst-ink/80 sm:text-lg">Manage your competition submissions and deadlines.</p>
             </header>
 
@@ -20,10 +20,10 @@
                 <section aria-label="Competition submissions">
                     <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                         @foreach ($competitions as $item)
-                            <article class="flex min-h-72 flex-col border border-catalyst-grey/30 bg-white p-5 shadow-sm">
+                            <article class="competition-card flex min-h-72 flex-col gap-5 border border-catalyst-grey/30 border-t-2 border-t-catalyst-primary bg-catalyst-neutral p-6">
                                 <div class="flex items-start justify-between gap-4">
                                     <div>
-                                        <p class="text-xs font-medium tracking-widest text-catalyst-grey">{{ $item['competition']['short_name'] }}</p>
+                                        <p class="text-xs font-medium tracking-widest text-catalyst-muted">{{ $item['competition']['short_name'] }}</p>
                                         <h2 class="mt-3 font-display text-2xl font-semibold tracking-tight text-catalyst-black">{{ $item['competition']['name'] }}</h2>
                                     </div>
                                     <x-dashboard.status-pill :label="$item['access']['label']" :tone="$item['access']['tone']" />
@@ -44,20 +44,20 @@
 
                                 <dl class="mt-5 grid grid-cols-2 gap-3 text-sm">
                                     <div>
-                                        <dt class="text-catalyst-grey">Registration</dt>
+                                        <dt class="text-catalyst-muted">Registration</dt>
                                         <dd class="mt-1"><x-dashboard.status-pill :label="$item['registration']['label']" :tone="$item['registration']['tone']" /></dd>
                                     </div>
                                     <div>
-                                        <dt class="text-catalyst-grey">Stage</dt>
+                                        <dt class="text-catalyst-muted">Stage</dt>
                                         <dd class="mt-1"><x-dashboard.status-pill :label="$item['stage_lifecycle']['label']" :tone="$item['stage_lifecycle']['tone']" /></dd>
                                     </div>
                                     <div>
-                                        <dt class="text-catalyst-grey">Submission</dt>
+                                        <dt class="text-catalyst-muted">Submission</dt>
                                         <dd class="mt-1"><x-dashboard.status-pill :label="$item['submission']['label']" :tone="$item['submission']['tone']" /></dd>
                                     </div>
                                 </dl>
 
-                                <a class="mt-auto inline-flex min-h-11 items-center justify-center bg-catalyst-primary px-4 py-3 text-sm font-medium text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-catalyst-primary" href="{{ $item['href'] }}">{{ $item['cta'] }}</a>
+                                <a class="mt-auto inline-flex min-h-11 items-center justify-center bg-catalyst-primary px-4 py-3 text-sm font-medium text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-catalyst-primary sm:self-start" href="{{ $item['href'] }}">{{ $item['cta'] }}</a>
                             </article>
                         @endforeach
                     </div>

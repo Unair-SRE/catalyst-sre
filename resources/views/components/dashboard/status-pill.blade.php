@@ -2,10 +2,10 @@
 
 @php
     $classes = match ($tone) {
-        'success' => 'bg-status-success/10 text-status-success',
-        'warning' => 'bg-status-warning/10 text-status-warning',
-        'error' => 'bg-status-error/10 text-status-error',
-        'info' => 'bg-status-info/10 text-status-info',
+        'success' => 'bg-status-success/10 text-status-success-ink',
+        'warning' => 'bg-status-warning/10 text-status-warning-ink',
+        'error' => 'bg-status-error/10 text-status-error-ink',
+        'info' => 'bg-status-info/10 text-status-info-ink',
         default => 'bg-catalyst-grey/15 text-catalyst-ink/75',
     };
 @endphp

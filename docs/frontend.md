@@ -41,6 +41,15 @@ Use Tailwind token utilities rather than repeating brand hex values:
 
 Inter is loaded by the existing Bunny/Vite integration. PP Mori is a licensed font and is not included in this repository; add its licensed webfont assets before treating it as guaranteed at runtime.
 
+## Dashboard visual polish
+
+- Palette: teal `#006D6A`, green `#6AB266`, blue `#214A86`, lime `#C6D34F`, ink `#172126`, and neutral `#F7F9F7`. White remains the primary canvas. Use `catalyst-muted` for readable secondary text and `status-*-ink` for accessible status text.
+- Display headings, metrics and countdown use `font-display`; body, inputs and metadata use Inter. Supply authorized PP Mori WOFF2 files for regular/medium/semibold/bold (400/500/600/700), or an equivalent licensed variable font, before adding it to the Vite font pipeline. No unofficial font downloads or missing font URLs are used.
+- Reuse thin borders, near-square controls, compact desktop CTAs, and the existing container gutters. Shared hover/focus rules are scoped to `.dashboard`; motion is disabled for reduced-motion preferences.
+- Confirmation overlays use the native `<dialog>` modal with the existing Livewire actions. Browser focus containment and Escape cancellation are preserved without a modal dependency.
+- `<x-dashboard.countdown :target="..." />` converts the existing WIB target to ISO 8601. Its custom element updates locally once per second, suspends while the tab is hidden, and releases its interval/listener on disconnect. The adjacent event date remains visible without JavaScript. It never changes milestone selection or authorization.
+- No route, scenario, Livewire method, state contract, validation rule, or backend integration changes are part of this polish.
+
 ## Routes
 
 - `home` → `/`

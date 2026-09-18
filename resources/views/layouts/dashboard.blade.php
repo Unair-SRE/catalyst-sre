@@ -9,7 +9,8 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         @livewireStyles
     </head>
-    <body class="bg-catalyst-background font-sans text-catalyst-ink antialiased">
+    <body class="dashboard bg-catalyst-background font-sans text-catalyst-ink antialiased">
+        <a href="#dashboard-content" class="sr-only fixed top-3 left-3 z-50 bg-white p-3 focus:not-sr-only">Skip to content</a>
         @php($dashboardNavigation = match (true) {
             request()->routeIs('dashboard.registration.*') => 'registration',
             request()->routeIs('dashboard.submission.*') => 'submission',
@@ -18,7 +19,7 @@
             default => 'overview',
         })
         <div class="min-h-screen lg:grid lg:grid-cols-[16rem_minmax(0,1fr)]">
-            <aside class="hidden border-catalyst-grey/30 border-r bg-white lg:block" aria-label="Dashboard navigation">
+            <aside class="sticky top-0 hidden h-dvh border-catalyst-grey/30 border-r bg-catalyst-neutral lg:block" aria-label="Dashboard navigation">
                 <x-dashboard.navigation :active="$dashboardNavigation" />
             </aside>
 
@@ -30,21 +31,19 @@
                             <span>Catalyst 2026</span>
                         </a>
 
-                        <details class="relative">
-                            <summary class="flex cursor-pointer list-none items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-catalyst-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-catalyst-primary">
-                                Menu
-                                <svg class="size-4" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                                    <path d="m5 7.5 5 5 5-5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" />
-                                </svg>
+                        <details class="group relative" x-data @keydown.escape="$el.open = false; $refs.navToggle.focus()" @click.outside="$el.open = false">
+                            <summary x-ref="navToggle" aria-label="Open navigation" class="flex size-11 cursor-pointer list-none items-center justify-center text-catalyst-ink [&::-webkit-details-marker]:hidden focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-catalyst-primary">
+                                <svg class="size-5 group-open:hidden" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-linecap="round" stroke-width="1.5" /></svg>
+                                <svg class="hidden size-5 group-open:block" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m6 6 12 12M6 18 18 6" stroke="currentColor" stroke-linecap="round" stroke-width="1.5" /></svg>
                             </summary>
-                            <div class="absolute right-0 top-full z-20 mt-2 w-72 rounded-lg border border-catalyst-grey/30 bg-white p-2 shadow-lg sm:w-80">
+                            <div class="absolute right-0 top-full z-20 mt-2 max-h-[80dvh] w-72 max-w-[calc(100vw-2.5rem)] overflow-y-auto border border-catalyst-grey/30 bg-white p-2 shadow-lg sm:w-80">
                                 <x-dashboard.navigation :active="$dashboardNavigation" :show-brand="false" />
                             </div>
                         </details>
                     </div>
                 </header>
 
-                <main>
+                <main id="dashboard-content" tabindex="-1">
                     @yield('content')
                 </main>
             </div>

@@ -8,11 +8,14 @@
     --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 
-    --color-catalyst-primary: #00804d;
-    --color-catalyst-green: #74c465;
-    --color-catalyst-blue: #1e4890;
-    --color-catalyst-lime: #dbe64c;
-    --color-catalyst-ink: #001f3e;
+    --color-catalyst-primary: #006d6a;
+    --color-catalyst-green: #6ab266;
+    --color-catalyst-blue: #214a86;
+    --color-catalyst-lime: #c6d34f;
+    --color-catalyst-ink: #172126;
+    --color-catalyst-neutral: #f7f9f7;
+    --color-catalyst-surface: #eaf3ee;
+    --color-catalyst-muted: #5c6b66;
     --color-catalyst-black: #000000;
     --color-catalyst-grey: #9da4ac;
     --color-catalyst-background: #ffffff;
@@ -21,4 +24,98 @@
     --color-status-warning: #f97316;
     --color-status-success: #22c55e;
     --color-status-info: #3b82f6;
+    --color-status-success-ink: #166534;
+    --color-status-warning-ink: #9a3412;
+    --color-status-error-ink: #b91c1c;
+    --color-status-info-ink: #1e40af;
+}
+
+/* Shared dashboard interactions; page composition stays in Blade utilities. */
+@layer components {
+    .dashboard :where(a, button, input, select, summary) {
+        transition: color 180ms ease, background-color 180ms ease,
+            border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+    }
+
+    .dashboard :where(button:not(:disabled), summary, select) { cursor: pointer; }
+    .dashboard :where(a, button, summary, input, select):focus-visible {
+        outline: 2px solid var(--color-catalyst-primary);
+        outline-offset: 3px;
+    }
+    .dashboard :where(input:not([type='checkbox']):not([type='file']), select) {
+        min-height: 2.75rem;
+        min-width: 0;
+        border-radius: 2px;
+        background-color: var(--color-catalyst-neutral);
+    }
+    .dashboard :where(input, select):focus {
+        border-color: var(--color-catalyst-primary);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-catalyst-primary) 9%, transparent);
+    }
+    .dashboard :where(input[aria-invalid='true']) { border-color: var(--color-status-error-ink); }
+    .dashboard :where(input:disabled) { color: var(--color-catalyst-muted); }
+    .dashboard :where(a.bg-catalyst-primary, button.bg-catalyst-primary) {
+        min-height: 2.75rem;
+        border-radius: 2px;
+    }
+    .dashboard :where(a.bg-catalyst-primary, button.bg-catalyst-primary:not(:disabled)):hover {
+        background-color: color-mix(in srgb, var(--color-catalyst-primary) 88%, var(--color-catalyst-ink));
+        transform: translateY(-1px);
+    }
+    .dashboard :where(a, button:not(:disabled)):active { transform: translateY(1px); }
+    .dashboard :where(a.border-catalyst-primary, button.border-catalyst-primary):hover {
+        background-color: var(--color-catalyst-surface);
+    }
+    .dashboard :where(button:disabled) { cursor: not-allowed; }
+    .dashboard :where(details > summary) { min-height: 2.75rem; align-content: center; }
+    .dashboard :where(details[open]) { border-color: color-mix(in srgb, var(--color-catalyst-primary) 35%, transparent); }
+    .dashboard :where([role='dialog']) { overflow-y: auto; }
+    .dashboard-page-heading { padding-bottom: .5rem; }
+    .dashboard-page-heading h1 { text-wrap: balance; }
+    .dashboard-page-heading > p:first-child {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        font-size: .75rem;
+        font-weight: 500;
+        letter-spacing: .04em;
+    }
+    .dashboard-page-heading > p:first-child::before {
+        content: '';
+        width: .4rem;
+        height: .4rem;
+        background: var(--color-catalyst-primary);
+    }
+    .dashboard nav a[aria-current='page'] {
+        background: var(--color-catalyst-surface);
+        color: var(--color-catalyst-ink);
+        box-shadow: inset 2px 0 var(--color-catalyst-primary);
+    }
+    .dashboard nav a:not([aria-current]):hover {
+        background: var(--color-catalyst-neutral);
+        color: var(--color-catalyst-primary);
+    }
+    .competition-card {
+        transition: transform 180ms ease, border-color 180ms ease;
+    }
+    .competition-card:hover {
+        transform: translateY(-2px);
+        border-color: var(--color-catalyst-primary);
+    }
+    .summit-ticket {
+        background-image: radial-gradient(ellipse at top right, color-mix(in srgb, var(--color-catalyst-lime) 24%, transparent), transparent 65%);
+        border-top: 3px solid var(--color-catalyst-primary);
+    }
+    .dashboard [role='status'] { animation: dashboard-feedback 180ms ease-out; }
+    @keyframes dashboard-feedback { from { opacity: .5; } to { opacity: 1; } }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .dashboard *, .dashboard *::before, .dashboard *::after {
+        animation: none !important;
+        transition: none !important;
+        scroll-behavior: auto !important;
+    }
+    .dashboard :where(a, button, .competition-card):hover,
+    .dashboard :where(a, button):active { transform: none; }
 }
