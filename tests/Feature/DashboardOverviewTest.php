@@ -1,7 +1,15 @@
 <?php
 
 use App\Livewire\Dashboard\Overview;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
+
+uses(RefreshDatabase::class);
+
+beforeEach(function () {
+    $this->actingAs(User::factory()->create());
+});
 
 test('the dashboard overview route renders', function () {
     $this->get(route('dashboard.index'))

@@ -1,7 +1,15 @@
 <?php
 
 use App\Livewire\Dashboard\Profile;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
+
+uses(RefreshDatabase::class);
+
+beforeEach(function () {
+    $this->actingAs(User::factory()->create());
+});
 
 test('profile route renders and marks its navigation active', function () {
     $this->get(route('dashboard.profile.index'))
