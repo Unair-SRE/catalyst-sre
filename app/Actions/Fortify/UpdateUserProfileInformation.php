@@ -3,6 +3,7 @@
 namespace App\Actions\Fortify;
 
 use App\Models\User;
+use App\Rules\AvailableTeamEmail;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -29,7 +30,10 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
                 'email',
                 'max:255',
                 Rule::unique('users')->ignore($user->id),
+                new AvailableTeamEmail(ignoreUserId: $user->id),
             ],
+
+            'whatsapp' => ['required', 'string', 'max:20', 'regex:/^[0-9+()\-\s]+$/'],
         ])->validateWithBag('updateProfileInformation');
 
         if ($input['email'] !== $user->email &&
@@ -39,6 +43,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             $user->forceFill([
                 'name' => $input['name'],
                 'email' => $input['email'],
+                'whatsapp' => $input['whatsapp'],
             ])->save();
         }
     }
@@ -53,6 +58,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
         $user->forceFill([
             'name' => $input['name'],
             'email' => $input['email'],
+            'whatsapp' => $input['whatsapp'],
             'email_verified_at' => null,
         ])->save();
 
