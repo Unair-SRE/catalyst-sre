@@ -17,6 +17,14 @@
 - Participant Dashboard pages live in `dashboard` and must use the dashboard layout.
 - Public-page ownership is organized by feature: Home, Pre-Event 1, Pre-Event 2, and Main Event developers should keep feature-specific work in their own page directory.
 
+The public layout owns the shared `<x-public.navbar>` and `<x-public.footer>` shell. Every public feature page should extend `layouts.public`; do not create page-specific copies of either component. Navbar navigation uses the existing PE1, PE2, and Main Event named routes; the logo owns Home navigation and `Register Now` uses the existing Fortify `register` route.
+
+Public mobile navigation uses native `<details>` disclosure with an icon-only, labeled trigger. The small shared `resources/js/public-navbar.js` module handles scroll presentation, Escape/outside dismissal, and deterministic section contrast; it has no package dependency or server request. Reuse `<x-ui.container>` for page gutters and add new shared public components only after a pattern is needed across multiple public feature pages.
+
+Sections may declare `data-navbar-theme="light"` when the navbar needs light foreground over a dark/image background, or `data-navbar-theme="dark"` for dark foreground over a light background. Omitted attributes safely default to dark foreground. The shared IntersectionObserver watches the section currently behind the navbar; do not add per-page scroll scripts or attempt pixel/color sampling. When dynamically inserting a themed section, dispatch `public-navbar:refresh` once afterward.
+
+`Guidebook` uses `CATALYST_GUIDEBOOK_URL` through `services.catalyst.guidebook_url`. It remains a visibly disabled placeholder until the final external URL is configured. Footer destinations without approved routes or external URLs use the same non-clickable placeholder convention rather than fake anchors.
+
 Use layouts with Blade inheritance, for example `@extends('layouts.public')`, `@section('title', 'Page title')`, and `@section('content')`. Layouts provide `title` and `content` sections; the dashboard layout provides the shared navigation shell.
 
 The dashboard navigation and page shell stay Blade. `App\\Livewire\\Dashboard\\Overview` is a scoped Livewire island for the Overview page only. It has no database query or polling; its temporary data is isolated in `App\\Support\\Dashboard\\DashboardOverviewState`.
@@ -40,6 +48,10 @@ Use Tailwind token utilities rather than repeating brand hex values:
 - `font-display` for PP Mori with Inter fallback; `font-sans` for Inter UI text
 
 Inter is loaded by the existing Bunny/Vite integration. PP Mori is a licensed font and is not included in this repository; add its licensed webfont assets before treating it as guaranteed at runtime.
+
+The supplied Catalyst mark is stored as an optimized transparent PNG at `public/images/brand/catalyst-mark.png`. The source SVG embeds a 4082px raster image, so serving it directly would add more than 1 MB to every page; the web asset preserves the supplied mark at four-times display resolution while remaining lightweight.
+
+The public footer uses `public/images/brand/footer-image.webp` as its responsive closing composition. Keep the image decorative (`alt=""`) and preserve its explicit intrinsic dimensions; page teams should not duplicate it inside feature content.
 
 ## Dashboard visual polish
 

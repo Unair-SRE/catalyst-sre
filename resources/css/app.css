@@ -30,8 +30,119 @@
     --color-status-info-ink: #1e40af;
 }
 
-/* Shared dashboard interactions; page composition stays in Blade utilities. */
+/* Shared public shell and dashboard interactions; page composition stays in Blade utilities. */
 @layer components {
+    .public-navbar {
+        position: fixed;
+        z-index: 40;
+        top: 1rem;
+        right: 0;
+        left: 0;
+        pointer-events: none;
+        color: var(--color-catalyst-ink);
+    }
+    .public-navbar__surface {
+        position: relative;
+        display: flex;
+        width: calc(100% - 2.5rem);
+        max-width: 77.5rem;
+        min-height: 4rem;
+        margin-inline: auto;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        border: 1px solid transparent;
+        padding-inline: 0;
+        pointer-events: auto;
+        transition: background-color 200ms ease, backdrop-filter 200ms ease, color 200ms ease;
+    }
+    .public-navbar[data-scrolled='true'] .public-navbar__surface {
+        background: rgb(255 255 255 / 30%);
+        -webkit-backdrop-filter: blur(6px);
+        backdrop-filter: blur(6px);
+    }
+    .public-navbar[data-menu-open='true'] .public-navbar__surface {
+        background: rgb(255 255 255 / 96%);
+        color: var(--color-catalyst-ink);
+        -webkit-backdrop-filter: blur(6px);
+        backdrop-filter: blur(6px);
+    }
+    .public-navbar-spacer { height: 6rem; }
+    .public-navbar__desktop-nav {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+    .public-navbar__wordmark-primary { color: var(--color-catalyst-ink); }
+    .public-navbar__wordmark-accent,
+    .public-navbar__nav-link[data-active='true'] { color: var(--color-catalyst-primary); }
+    .public-navbar__nav-link {
+        color: var(--color-catalyst-muted);
+        transition: color 180ms ease;
+    }
+    .public-navbar__nav-link:hover { color: var(--color-catalyst-ink); }
+    .public-navbar__toggle { color: var(--color-catalyst-ink); }
+    .public-navbar__secondary {
+        border-color: var(--color-catalyst-primary);
+        background: color-mix(in srgb, var(--color-catalyst-primary) 8%, transparent);
+        color: var(--color-catalyst-primary);
+    }
+    .public-navbar__secondary:not([aria-disabled='true']):hover {
+        background: var(--color-catalyst-surface);
+    }
+    .public-navbar__primary:hover { background: var(--color-catalyst-ink); }
+    .public-navbar[data-foreground='light'] :is(.public-navbar__wordmark-primary, .public-navbar__wordmark-accent, .public-navbar__nav-link, .public-navbar__toggle) {
+        color: rgb(255 255 255 / 86%);
+    }
+    .public-navbar[data-foreground='light'] .public-navbar__nav-link[data-active='true'] {
+        color: var(--color-catalyst-lime);
+    }
+    .public-navbar[data-foreground='light'] .public-navbar__secondary {
+        border-color: rgb(255 255 255 / 70%);
+        background: rgb(255 255 255 / 10%);
+        color: white;
+    }
+    .public-navbar[data-menu-open='true'] :is(.public-navbar__wordmark-primary, .public-navbar__toggle) {
+        color: var(--color-catalyst-ink);
+    }
+    .public-navbar[data-menu-open='true'] .public-navbar__wordmark-accent {
+        color: var(--color-catalyst-primary);
+    }
+    .public-footer__image {
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        width: max(100%, 56.25rem);
+        max-width: none;
+        height: auto;
+        transform: translateX(-50%);
+        pointer-events: none;
+        user-select: none;
+    }
+    .public-site :where(a, summary) {
+        transition: color 180ms ease, background-color 180ms ease,
+            border-color 180ms ease, transform 180ms ease;
+    }
+    .public-site :where(a, summary):focus-visible {
+        outline: 2px solid var(--color-catalyst-primary);
+        outline-offset: 3px;
+    }
+    .public-site :where(summary) { cursor: pointer; }
+
+    @media (min-width: 40rem) {
+        .public-navbar { top: 1.5rem; }
+        .public-navbar__surface { width: calc(100% - 3rem); }
+        .public-navbar-spacer { height: 7rem; }
+    }
+    @media (min-width: 64rem) {
+        .public-navbar { top: 3rem; }
+        .public-navbar__surface { min-height: 5rem; }
+        .public-navbar-spacer { height: 9rem; }
+    }
+    @media (min-width: 80rem) {
+        .public-navbar__surface { width: calc(100% - 2.5rem); }
+    }
+
     .dashboard :where(a, button, input, select, summary) {
         transition: color 180ms ease, background-color 180ms ease,
             border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
@@ -111,6 +222,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+    .public-site *, .public-site *::before, .public-site *::after,
     .dashboard *, .dashboard *::before, .dashboard *::after {
         animation: none !important;
         transition: none !important;

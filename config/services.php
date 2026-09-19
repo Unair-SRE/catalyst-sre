@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'catalyst' => [
+        'guidebook_url' => env('CATALYST_GUIDEBOOK_URL'),
+    ],
+
 ];
