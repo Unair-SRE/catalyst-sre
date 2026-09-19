@@ -15,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'whatsapp', 'password'])]
+#[Fillable(['name', 'email', 'whatsapp', 'password', 'ktm_url', 'ktm_file_id'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements FilamentUser, MustVerifyEmailContract
 {
@@ -54,6 +54,16 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmailContr
     public function emailVerificationOtp(): HasOne
     {
         return $this->hasOne(EmailVerificationOtp::class);
+    }
+
+    public function captainedTeam(): HasOne
+    {
+        return $this->hasOne(Team::class, 'captain_id');
+    }
+
+    public function hasCompleteKtm(): bool
+    {
+        return filled($this->ktm_url) && filled($this->ktm_file_id);
     }
 
     public function sendEmailVerificationNotification(): void

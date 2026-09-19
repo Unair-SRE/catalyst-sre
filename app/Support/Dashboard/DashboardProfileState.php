@@ -2,6 +2,9 @@
 
 namespace App\Support\Dashboard;
 
+use App\Models\User;
+use Illuminate\Support\Facades\Auth;
+
 final class DashboardProfileState
 {
     /**
@@ -9,17 +12,20 @@ final class DashboardProfileState
      */
     public function get(): array
     {
+        /** @var User $user */
+        $user = Auth::user();
+
         return [
             'profile' => [
-                'name' => 'Alya Pratama',
-                'email' => 'alya@example.test',
-                'whatsapp' => '+62 812 0000 0000',
+                'name' => $user->name,
+                'email' => $user->email,
+                'whatsapp' => $user->whatsapp ?? '',
                 'institution' => 'Universitas Indonesia',
             ],
             'password_policy' => [
                 'minimum_length' => 8,
             ],
-            'email_notice' => 'Email verification will be required when account email changes are connected to production authentication.',
+            'email_notice' => 'Changing your email address requires a new verification code.',
         ];
     }
 }
