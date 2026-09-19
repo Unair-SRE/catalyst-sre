@@ -1,7 +1,16 @@
 <?php
 
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+
+uses(RefreshDatabase::class);
+
 test('frontend foundation routes render their assigned views', function (string $name, string $path, string $view) {
     expect(route($name, [], false))->toBe($path);
+
+    if (str_starts_with($name, 'dashboard.')) {
+        $this->actingAs(User::factory()->create());
+    }
 
     $this->get(route($name))
         ->assertOk()

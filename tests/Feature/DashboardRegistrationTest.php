@@ -3,7 +3,15 @@
 use App\Livewire\Dashboard\Overview;
 use App\Livewire\Dashboard\RegistrationDetail;
 use App\Livewire\Dashboard\RegistrationIndex;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
+
+uses(RefreshDatabase::class);
+
+beforeEach(function () {
+    $this->actingAs(User::factory()->create());
+});
 
 test('registration index route renders', function () {
     $this->get(route('dashboard.registration.index'))

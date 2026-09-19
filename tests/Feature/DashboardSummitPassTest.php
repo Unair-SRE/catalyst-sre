@@ -2,7 +2,15 @@
 
 use App\Livewire\Dashboard\Overview;
 use App\Livewire\Dashboard\SummitPass;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
+
+uses(RefreshDatabase::class);
+
+beforeEach(function () {
+    $this->actingAs(User::factory()->create());
+});
 
 test('summit pass route renders and marks its navigation active', function () {
     $this->get(route('dashboard.summit-pass.index'))
