@@ -2,7 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Enums\CompetitionCode;
+use App\Enums\RegistrationStatus;
 use App\Enums\UserRole;
+use App\Models\Competition;
+use App\Models\Registration;
 use App\Models\Team;
 use App\Models\TeamMember;
 use App\Models\User;
@@ -18,6 +22,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $competitions = $this->competitions();
+
         $this->user([
             'name' => 'Catalyst Admin',
             'email' => 'admin@example.com',
@@ -90,6 +96,54 @@ class DatabaseSeeder extends Seeder
                 'ktm_file_id' => 'seed-ktm-farhan',
             ],
         ]);
+
+        $this->registration($northstar, $competitions[CompetitionCode::MiniCase->value], RegistrationStatus::Verified);
+        $this->registration($northstar, $competitions[CompetitionCode::BusinessCase->value], RegistrationStatus::Pending);
+        $this->registration($catalystCollective, $competitions[CompetitionCode::BusinessPlan->value], RegistrationStatus::Rejected);
+        $this->registration($garudaMuda, $competitions[CompetitionCode::MiniCase->value], RegistrationStatus::Pending);
+        $this->registration($garudaMuda, $competitions[CompetitionCode::BusinessPlan->value], RegistrationStatus::Verified);
+    }
+
+    /** @return array<string, Competition> */
+    private function competitions(): array
+    {
+        $data = [
+            CompetitionCode::MiniCase->value => [
+                'description' => 'A compact case-solving competition for students to demonstrate structured thinking and practical insight.',
+                'registration_fee' => 75000,
+                'registration_open' => true,
+                'registration_start_at' => now()->subDays(7),
+                'registration_end_at' => now()->addDays(21),
+            ],
+            CompetitionCode::BusinessCase->value => [
+                'description' => 'Teams analyse a real-world business challenge and present an evidence-based strategic recommendation.',
+                'registration_fee' => 150000,
+                'registration_open' => true,
+                'registration_start_at' => now()->subDays(5),
+                'registration_end_at' => now()->addDays(30),
+            ],
+            CompetitionCode::BusinessPlan->value => [
+                'description' => 'Teams develop and present a viable, innovative, and sustainable business plan.',
+                'registration_fee' => 150000,
+                'registration_open' => false,
+                'registration_start_at' => now()->subDays(45),
+                'registration_end_at' => now()->subDays(7),
+            ],
+        ];
+
+        return collect(CompetitionCode::cases())
+            ->mapWithKeys(function (CompetitionCode $code) use ($data): array {
+                $competition = Competition::query()->updateOrCreate(
+                    ['code' => $code],
+                    [
+                        'name' => $code->label(),
+                        ...$data[$code->value],
+                    ],
+                );
+
+                return [$code->value => $competition];
+            })
+            ->all();
     }
 
     /** @param array{name: string, email: string, whatsapp: string, role?: UserRole, ktm_file_id?: string, password?: string} $data */
@@ -142,5 +196,16 @@ class DatabaseSeeder extends Seeder
                 ],
             );
         }
+    }
+
+    private function registration(Team $team, Competition $competition, RegistrationStatus $status): void
+    {
+        Registration::query()->updateOrCreate(
+            [
+                'team_id' => $team->id,
+                'competition_id' => $competition->id,
+            ],
+            ['status' => $status],
+        );
     }
 }

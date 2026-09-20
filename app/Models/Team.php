@@ -32,6 +32,11 @@ class Team extends Model
         return $this->hasMany(TeamMember::class);
     }
 
+    public function registrations(): HasMany
+    {
+        return $this->hasMany(Registration::class);
+    }
+
     public function isLocked(): bool
     {
         return $this->locked_at !== null;

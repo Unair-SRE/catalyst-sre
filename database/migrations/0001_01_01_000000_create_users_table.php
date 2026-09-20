@@ -16,6 +16,8 @@ return new class extends Migration
             $table->string('name');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
+            $table->string('otp_hash')->nullable();
+            $table->timestamp('otp_expires_at')->nullable()->index();
             $table->string('password');
             $table->rememberToken();
             $table->timestamps();

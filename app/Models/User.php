@@ -16,7 +16,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 #[Fillable(['name', 'email', 'whatsapp', 'password', 'ktm_url', 'ktm_file_id'])]
-#[Hidden(['password', 'remember_token'])]
+#[Hidden(['password', 'remember_token', 'otp_hash'])]
 class User extends Authenticatable implements FilamentUser, MustVerifyEmailContract
 {
     /** @use HasFactory<UserFactory> */
@@ -31,6 +31,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmailContr
     {
         return [
             'email_verified_at' => 'datetime',
+            'otp_expires_at' => 'datetime',
             'password' => 'hashed',
             'role' => UserRole::class,
         ];
@@ -49,11 +50,6 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmailContr
     public function canAccessPanel(Panel $panel): bool
     {
         return $panel->getId() === 'admin' && $this->isAdmin();
-    }
-
-    public function emailVerificationOtp(): HasOne
-    {
-        return $this->hasOne(EmailVerificationOtp::class);
     }
 
     public function captainedTeam(): HasOne

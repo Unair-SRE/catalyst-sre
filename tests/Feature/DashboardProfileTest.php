@@ -69,7 +69,8 @@ test('changing profile email requires a new otp verification', function () {
     expect($this->user)
         ->email->toBe('alya.changed@example.test')
         ->email_verified_at->toBeNull()
-        ->and($this->user->emailVerificationOtp()->exists())->toBeTrue();
+        ->otp_hash->not->toBeNull()
+        ->otp_expires_at->not->toBeNull();
 
     Notification::assertSentTo($this->user, VerifyEmailOtp::class);
 });

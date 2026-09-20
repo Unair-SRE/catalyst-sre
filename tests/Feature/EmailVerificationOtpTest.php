@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\EmailVerificationOtp;
 use App\Models\User;
 use App\Notifications\VerifyEmailOtp;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -21,15 +20,15 @@ test('registration sends a six digit otp and stores only its hash', function () 
     ])->assertRedirect('/dashboard');
 
     $user = User::query()->where('email', 'eka@example.com')->firstOrFail();
-    $otp = $user->emailVerificationOtp()->firstOrFail();
+    $user->refresh();
 
-    Notification::assertSentTo($user, VerifyEmailOtp::class, function (VerifyEmailOtp $notification) use ($otp) {
+    Notification::assertSentTo($user, VerifyEmailOtp::class, function (VerifyEmailOtp $notification) use ($user) {
         return preg_match('/^\d{6}$/', $notification->code) === 1
-            && $otp->otp_hash !== $notification->code
-            && Hash::check($notification->code, $otp->otp_hash);
+            && $user->otp_hash !== $notification->code
+            && Hash::check($notification->code, $user->otp_hash);
     });
 
-    expect($otp->last_sent_at->diffInSeconds($otp->expires_at))->toBe(300.0);
+    expect($user->otp_expires_at->isBetween(now()->addMinutes(4)->addSeconds(59), now()->addMinutes(5)->addSecond()))->toBeTrue();
 });
 
 test('a valid otp verifies the email and can only be used once', function () {
@@ -49,7 +48,8 @@ test('a valid otp verifies the email and can only be used once', function () {
         ->assertRedirect('/dashboard');
 
     expect($user->refresh()->hasVerifiedEmail())->toBeTrue()
-        ->and($user->emailVerificationOtp->consumed_at)->not->toBeNull();
+        ->and($user->otp_hash)->toBeNull()
+        ->and($user->otp_expires_at)->toBeNull();
 
     $this->post('/email/verify-otp', ['otp' => $code])
         ->assertSessionHasErrors('otp');
@@ -64,9 +64,7 @@ test('an invalid or expired otp is rejected', function () {
         ->post('/email/verify-otp', ['otp' => '000000'])
         ->assertSessionHasErrors('otp');
 
-    EmailVerificationOtp::query()->whereBelongsTo($user)->update([
-        'expires_at' => now()->subSecond(),
-    ]);
+    $user->forceFill(['otp_expires_at' => now()->subSecond()])->save();
 
     $this->post('/email/verify-otp', ['otp' => '123456'])
         ->assertSessionHasErrors('otp');
@@ -78,7 +76,7 @@ test('otp resend requires a sixty second cooldown and invalidates the previous c
     Notification::fake();
     $user = User::factory()->unverified()->create();
     $user->sendEmailVerificationNotification();
-    $originalHash = $user->emailVerificationOtp->otp_hash;
+    $originalHash = $user->refresh()->otp_hash;
 
     $this->actingAs($user)
         ->post('/email/verification-notification')
@@ -89,7 +87,7 @@ test('otp resend requires a sixty second cooldown and invalidates the previous c
     $this->post('/email/verification-notification')
         ->assertSessionHasNoErrors();
 
-    expect($user->emailVerificationOtp()->value('otp_hash'))->not->toBe($originalHash);
+    expect($user->refresh()->otp_hash)->not->toBe($originalHash);
     Notification::assertSentToTimes($user, VerifyEmailOtp::class, 2);
 });
 
