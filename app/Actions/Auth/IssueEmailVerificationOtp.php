@@ -2,7 +2,6 @@
 
 namespace App\Actions\Auth;
 
-use App\Models\EmailVerificationOtp;
 use App\Models\User;
 use App\Notifications\VerifyEmailOtp;
 use Illuminate\Support\Facades\DB;
@@ -20,26 +19,21 @@ class IssueEmailVerificationOtp
         $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
         DB::transaction(function () use ($user, $code): void {
-            $otp = EmailVerificationOtp::query()
-                ->whereBelongsTo($user)
+            $lockedUser = User::query()
                 ->lockForUpdate()
-                ->first();
+                ->findOrFail($user->id);
 
-            if ($otp?->last_sent_at->isAfter(now()->subSeconds(60))) {
+            if ($lockedUser->otp_hash
+                && $lockedUser->otp_expires_at?->isAfter(now()->addMinutes(4))) {
                 throw ValidationException::withMessages([
                     'otp' => 'Please wait 60 seconds before requesting another code.',
                 ]);
             }
 
-            EmailVerificationOtp::query()->updateOrCreate(
-                ['user_id' => $user->id],
-                [
-                    'otp_hash' => Hash::make($code),
-                    'expires_at' => now()->addMinutes(5),
-                    'last_sent_at' => now(),
-                    'consumed_at' => null,
-                ],
-            );
+            $lockedUser->forceFill([
+                'otp_hash' => Hash::make($code),
+                'otp_expires_at' => now()->addMinutes(5),
+            ])->save();
         });
 
         $user->notify(new VerifyEmailOtp($code));
