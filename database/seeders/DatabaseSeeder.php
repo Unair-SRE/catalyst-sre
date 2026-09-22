@@ -22,6 +22,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->call(PaymentSettingSeeder::class);
+
         $competitions = $this->competitions();
 
         $this->user([
