@@ -104,6 +104,8 @@ class DatabaseSeeder extends Seeder
         $this->registration($catalystCollective, $competitions[CompetitionCode::BusinessPlan->value], RegistrationStatus::Rejected);
         $this->registration($garudaMuda, $competitions[CompetitionCode::MiniCase->value], RegistrationStatus::Pending);
         $this->registration($garudaMuda, $competitions[CompetitionCode::BusinessPlan->value], RegistrationStatus::Verified);
+
+        $this->call(CompetitionPaymentSeeder::class);
     }
 
     /** @return array<string, Competition> */
@@ -202,12 +204,14 @@ class DatabaseSeeder extends Seeder
 
     private function registration(Team $team, Competition $competition, RegistrationStatus $status): void
     {
-        Registration::query()->updateOrCreate(
+        $registration = Registration::query()->updateOrCreate(
             [
                 'team_id' => $team->id,
                 'competition_id' => $competition->id,
             ],
             ['status' => $status],
         );
+
+        $registration->payment()->firstOrCreate();
     }
 }

@@ -2,6 +2,9 @@
 
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\Auth\EmailVerificationOtpController;
+use App\Http\Controllers\CaptainKtmController;
+use App\Http\Controllers\CompetitionPaymentProofController;
+use App\Http\Controllers\TeamMemberKtmController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -41,6 +44,19 @@ Route::middleware(['auth', 'verified'])->prefix('dashboard')->name('dashboard.')
     Route::get('/registration', function () {
         return view('dashboard.registration.index');
     })->name('registration.index');
+
+    Route::get('/registration/{competition}/payment', function (string $competition) {
+        return view('dashboard.registration.payment', ['competition' => $competition]);
+    })->whereIn('competition', ['mcc', 'bcc', 'bpc'])->name('registration.payment');
+
+    Route::get('/competition-payments/{payment}/proof', CompetitionPaymentProofController::class)
+        ->name('competition-payment.proof');
+
+    Route::get('/private-files/captains/{user}/ktm', CaptainKtmController::class)
+        ->name('private-files.captain-ktm');
+
+    Route::get('/private-files/team-members/{teamMember}/ktm', TeamMemberKtmController::class)
+        ->name('private-files.team-member-ktm');
 
     Route::get('/registration/{competition}', function (string $competition) {
         return view('dashboard.registration.show', ['competition' => $competition]);

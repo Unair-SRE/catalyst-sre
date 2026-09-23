@@ -63,7 +63,7 @@ final class DashboardSummitPassState
                 'status' => 'WAITING_VERIFICATION',
                 'payment' => [
                     ...$state['payment'],
-                    'proof' => $this->proof('summit-pass-payment.pdf', 'application/pdf', 840_000),
+                    'proof' => $this->proof('summit-pass-payment.jpg', 'image/jpeg', 840_000),
                 ],
                 'submitted_at' => '2026-10-04 14:34:00',
                 'history' => [
@@ -74,7 +74,7 @@ final class DashboardSummitPassState
                 'status' => 'REJECTED',
                 'payment' => [
                     ...$state['payment'],
-                    'proof' => $this->proof('summit-pass-payment.pdf', 'application/pdf', 840_000),
+                    'proof' => $this->proof('summit-pass-payment.jpg', 'image/jpeg', 840_000),
                 ],
                 'submitted_at' => '2026-10-04 14:34:00',
                 'rejection_reason' => 'The uploaded payment proof could not be verified.',

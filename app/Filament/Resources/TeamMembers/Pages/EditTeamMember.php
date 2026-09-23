@@ -16,7 +16,6 @@ class EditTeamMember extends EditRecord
         $data['name'] = trim($data['name']);
         $data['email'] = Str::lower(trim($data['email']));
         $data['whatsapp'] = trim($data['whatsapp']);
-        $data['ktm_file_id'] = trim($data['ktm_file_id']);
 
         return $data;
     }
