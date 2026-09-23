@@ -5,7 +5,7 @@ use App\Actions\Payments\ReplaceCompetitionPaymentProof;
 use App\Actions\Payments\SubmitCompetitionPayment;
 use App\Actions\Payments\VerifyCompetitionPayment;
 use App\Contracts\CompetitionPaymentStorage;
-use App\Contracts\PrivateFileUrlGenerator;
+use App\Contracts\KtmStorage;
 use App\Enums\CompetitionCode;
 use App\Enums\PaymentStatus;
 use App\Enums\RegistrationStatus;
@@ -41,7 +41,7 @@ function competitionPaymentFixture(): array
 beforeEach(function () {
     $storage = new FakeCompetitionPaymentStorage;
     $this->app->instance(CompetitionPaymentStorage::class, $storage);
-    $this->app->instance(PrivateFileUrlGenerator::class, $storage);
+    $this->app->instance(KtmStorage::class, $storage);
     $this->paymentStorage = $storage;
 });
 

@@ -45,6 +45,10 @@ Route::middleware(['auth', 'verified'])->prefix('dashboard')->name('dashboard.')
         return view('dashboard.registration.index');
     })->name('registration.index');
 
+    Route::get('/team', function () {
+        return view('dashboard.team');
+    })->name('team.index');
+
     Route::get('/registration/{competition}/payment', function (string $competition) {
         return view('dashboard.registration.payment', ['competition' => $competition]);
     })->whereIn('competition', ['mcc', 'bcc', 'bpc'])->name('registration.payment');
