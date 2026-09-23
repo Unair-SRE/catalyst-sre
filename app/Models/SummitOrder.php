@@ -46,4 +46,9 @@ class SummitOrder extends Model
     {
         return $this->belongsTo(User::class, 'verified_by');
     }
+
+    public function hasProof(): bool
+    {
+        return filled($this->payment_proof_url) && filled($this->payment_proof_file_id);
+    }
 }
