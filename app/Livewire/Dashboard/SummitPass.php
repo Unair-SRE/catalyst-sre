@@ -76,10 +76,25 @@ class SummitPass extends Component
             return;
         }
 
+        $type = (string) ($proof['type'] ?? 'application/octet-stream');
         $size = (int) ($proof['size_bytes'] ?? 0);
+
+        if (! in_array($type, ['image/jpeg', 'image/png'], true)) {
+            $this->addError('payment.proof', 'Payment proof must be a JPG, JPEG, or PNG image.');
+
+            return;
+        }
+
+        if ($size > 10 * 1024 * 1024) {
+            $this->addError('payment.proof', 'Payment proof may not be larger than 10 MB.');
+
+            return;
+        }
+
+        $this->resetErrorBag('payment.proof');
         $this->payment['proof'] = [
             'name' => (string) ($proof['name'] ?? 'payment-proof'),
-            'type' => (string) ($proof['type'] ?? 'application/octet-stream'),
+            'type' => $type,
             'size_bytes' => $size,
             'size_label' => number_format($size / 1024 / 1024, 1).' MB',
         ];
@@ -199,6 +214,8 @@ class SummitPass extends Component
             'payment.date' => 'required|date',
             'payment.time' => 'required|date_format:H:i',
             'payment.proof' => 'required|array',
+            'payment.proof.type' => 'required|in:image/jpeg,image/png',
+            'payment.proof.size_bytes' => 'required|integer|max:10485760',
         ];
     }
 

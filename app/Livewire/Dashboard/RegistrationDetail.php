@@ -2,7 +2,10 @@
 
 namespace App\Livewire\Dashboard;
 
+use App\Enums\CompetitionCode;
+use App\Models\Competition;
 use App\Support\Dashboard\DashboardRegistrationState;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -18,10 +21,13 @@ class RegistrationDetail extends Component
 
     public bool $showConfirm = false;
 
+    public ?string $paymentUrl = null;
+
     public function mount(string $competition): void
     {
         $this->competition = $competition;
         $this->loadScenario();
+        $this->paymentUrl = $this->resolvePaymentUrl();
     }
 
     public function updatedScenario(): void
@@ -121,5 +127,23 @@ class RegistrationDetail extends Component
         }
 
         return $rules;
+    }
+
+    private function resolvePaymentUrl(): ?string
+    {
+        $code = CompetitionCode::tryFrom(strtoupper($this->competition));
+        $team = Auth::user()?->captainedTeam;
+
+        if ($code === null || $team === null) {
+            return null;
+        }
+
+        $competitionId = Competition::query()->where('code', $code)->value('id');
+
+        if ($competitionId === null || ! $team->registrations()->where('competition_id', $competitionId)->exists()) {
+            return null;
+        }
+
+        return route('dashboard.registration.payment', $this->competition);
     }
 }

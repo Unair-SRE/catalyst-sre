@@ -198,14 +198,31 @@ test('team KTM completeness includes captain and every member', function () {
 
 test('admin can access team and member filament resources', function () {
     $admin = User::factory()->admin()->create();
+    $team = Team::factory()->create();
+    $team->captain->update([
+        'ktm_url' => 'https://ik.imagekit.io/catalyst/ktm/captain.jpg',
+        'ktm_file_id' => 'captain-preview',
+    ]);
+    $member = TeamMember::factory()->for($team)->create([
+        'ktm_url' => 'https://ik.imagekit.io/catalyst/ktm/member.jpg',
+        'ktm_file_id' => 'member-preview',
+    ]);
 
     $this->actingAs($admin)
         ->get(TeamResource::getUrl('index'))
-        ->assertOk();
+        ->assertOk()
+        ->assertSee(route('dashboard.private-files.captain-ktm', $team->captain));
 
     $this->actingAs($admin)
         ->get(TeamMemberResource::getUrl('index'))
-        ->assertOk();
+        ->assertOk()
+        ->assertSee(route('dashboard.private-files.team-member-ktm', $member));
+
+    $this->actingAs($admin)
+        ->get(TeamMemberResource::getUrl('edit', ['record' => $member]))
+        ->assertOk()
+        ->assertDontSee('KTM URL')
+        ->assertDontSee('ImageKit file ID');
 });
 
 test('participants cannot access team and member filament resources', function () {

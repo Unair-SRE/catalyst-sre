@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 
 #[Fillable([
-    'qris_url',
     'contact_person_name',
     'contact_person_whatsapp',
     'summit_ticket_price',
@@ -14,6 +13,15 @@ use Illuminate\Database\Eloquent\Model;
 ])]
 class PaymentSetting extends Model
 {
+    protected static function booted(): void
+    {
+        static::saved(function (PaymentSetting $setting): void {
+            if ($setting->is_active) {
+                static::query()->whereKeyNot($setting->getKey())->update(['is_active' => false]);
+            }
+        });
+    }
+
     protected function casts(): array
     {
         return [

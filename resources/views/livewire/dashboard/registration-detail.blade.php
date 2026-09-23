@@ -97,11 +97,14 @@
                     <legend class="px-1 font-display text-xl font-semibold tracking-tight">Payment</legend>
                     @if ($state['payment_required'])
                         <div class="mt-5 grid gap-6 lg:grid-cols-[12rem_minmax(0,1fr)]">
-                            <div class="grid min-h-48 place-items-center border border-dashed border-catalyst-grey/60 bg-catalyst-grey/10 p-4 text-center"><p class="text-sm font-medium">QRIS Payment Placeholder</p><p class="mt-2 text-xs leading-5 text-catalyst-muted">Replace with the approved QRIS asset.</p></div>
+                            <div class="min-h-48 overflow-hidden border border-catalyst-grey/30 bg-catalyst-grey/5"><img class="h-full w-full object-contain" src="{{ asset(config('services.catalyst.qris_asset')) }}" alt="Catalyst payment QRIS"></div>
                             <div><p class="font-medium">Competition fee: {{ $state['competition']['fee'] }}</p><p class="mt-2 text-sm leading-6 text-catalyst-ink/75">After completing the payment, upload your payment proof to the same registration Google Drive folder above.</p><div class="mt-5 grid gap-4 sm:grid-cols-2"><label class="block text-sm">Sender Name<input class="mt-2 w-full border border-catalyst-grey/50 bg-white px-3 py-3 text-sm focus:border-catalyst-primary focus:outline-none disabled:bg-catalyst-grey/10" type="text" wire:model="form.payment_sender"></label><label class="block text-sm">Payment Date<input class="mt-2 w-full border border-catalyst-grey/50 bg-white px-3 py-3 text-sm focus:border-catalyst-primary focus:outline-none disabled:bg-catalyst-grey/10" type="date" wire:model="form.payment_date"></label><label class="block text-sm">Payment Time<input class="mt-2 w-full border border-catalyst-grey/50 bg-white px-3 py-3 text-sm focus:border-catalyst-primary focus:outline-none disabled:bg-catalyst-grey/10" type="time" wire:model="form.payment_time"></label><label class="block text-sm">Optional Note<input class="mt-2 w-full border border-catalyst-grey/50 bg-white px-3 py-3 text-sm focus:border-catalyst-primary focus:outline-none disabled:bg-catalyst-grey/10" type="text" wire:model="form.payment_note"></label></div></div>
                         </div>
                     @else
                         <div class="mt-5 border border-status-success/30 bg-status-success/10 p-4 text-sm leading-6 text-catalyst-ink/80"><p class="font-medium text-status-success-ink">Payment waived</p><p class="mt-1">No payment confirmation is required for this registration.</p></div>
+                    @endif
+                    @if ($paymentUrl)
+                        <a class="mt-5 inline-flex bg-catalyst-primary px-4 py-3 text-sm font-medium text-white" href="{{ $paymentUrl }}">Open Competition Payment</a>
                     @endif
                 </fieldset>
 

@@ -38,6 +38,8 @@ test('captain can register a complete team for mini case and one main competitio
 
     expect($miniRegistration->status)->toBe(RegistrationStatus::Pending)
         ->and($mainRegistration->status)->toBe(RegistrationStatus::Pending)
+        ->and($miniRegistration->payment)->not->toBeNull()
+        ->and($mainRegistration->payment)->not->toBeNull()
         ->and($team->registrations()->count())->toBe(2);
 });
 

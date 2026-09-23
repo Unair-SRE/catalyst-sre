@@ -31,11 +31,15 @@ class RegisterTeam
 
             $this->validate($lockedTeam, $competition);
 
-            return Registration::query()->create([
+            $registration = Registration::query()->create([
                 'team_id' => $lockedTeam->id,
                 'competition_id' => $competition->id,
                 'status' => RegistrationStatus::Pending,
             ]);
+
+            $registration->payment()->firstOrCreate();
+
+            return $registration->load('payment');
         });
     }
 

@@ -31,7 +31,7 @@ test('purchase state renders attendee and payment flow', function () {
         ->set('scenario', 'purchase')
         ->assertSee('Attendee Information')
         ->assertSee('Summit Pass Information')
-        ->assertSee('QRIS Payment Placeholder')
+        ->assertSee(asset('images/payment/qris-catalyst.png'))
         ->assertSee('Submit Purchase');
 });
 
@@ -54,8 +54,8 @@ test('purchase submission changes only the component-local prototype state', fun
     Livewire::test(SummitPass::class)
         ->set('scenario', 'purchase')
         ->call('selectProof', [
-            'name' => 'payment.pdf',
-            'type' => 'application/pdf',
+            'name' => 'payment.jpg',
+            'type' => 'image/jpeg',
             'size_bytes' => 512_000,
         ])
         ->call('openConfirmation')
@@ -63,6 +63,18 @@ test('purchase submission changes only the component-local prototype state', fun
         ->call('submitPurchase')
         ->assertSet('status', 'WAITING_VERIFICATION')
         ->assertSee('Payment under review');
+});
+
+test('summit payment prototype rejects non-image proof metadata', function () {
+    Livewire::test(SummitPass::class)
+        ->set('scenario', 'purchase')
+        ->call('selectProof', [
+            'name' => 'payment.pdf',
+            'type' => 'application/pdf',
+            'size_bytes' => 512_000,
+        ])
+        ->assertHasErrors('payment.proof')
+        ->assertSet('payment.proof', null);
 });
 
 test('overview summit pass calls to action resolve to the real route', function () {

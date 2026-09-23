@@ -12,13 +12,12 @@ class PaymentSettingSeeder extends Seeder
 
     public function run(): void
     {
-        PaymentSetting::query()->updateOrCreate(
+        PaymentSetting::query()->firstOrCreate(
             ['is_active' => true],
             [
-                'qris_url' => null,
-                'contact_person_name' => null,
-                'contact_person_whatsapp' => null,
-                'summit_ticket_price' => null,
+                'contact_person_name' => 'Nadia Catalyst',
+                'contact_person_whatsapp' => '6281234567890',
+                'summit_ticket_price' => 100000,
             ],
         );
     }

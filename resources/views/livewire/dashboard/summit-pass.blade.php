@@ -81,8 +81,8 @@
                     <fieldset class="border border-catalyst-grey/30 bg-white p-5 sm:p-6">
                         <legend class="px-1 font-display text-xl font-semibold tracking-tight">Payment</legend>
                         <div class="mt-5 grid gap-6 lg:grid-cols-[13rem_minmax(0,1fr)]">
-                            <div class="grid min-h-52 place-items-center border border-dashed border-catalyst-grey/60 bg-catalyst-grey/5 p-5 text-center" aria-label="QRIS Payment Placeholder">
-                                <div><p class="text-sm font-medium">QRIS Payment Placeholder</p><p class="mt-2 text-xs leading-5 text-catalyst-muted">Replace with the approved QRIS asset.</p></div>
+                            <div class="min-h-52 overflow-hidden border border-catalyst-grey/30 bg-catalyst-grey/5">
+                                <img class="h-full w-full object-contain" src="{{ asset(config('services.catalyst.qris_asset')) }}" alt="Catalyst payment QRIS">
                             </div>
                             <div>
                                 <p class="font-medium">Amount: {{ $state['event']['price'] }}</p>
@@ -107,9 +107,9 @@
 
                                 <div class="mt-5">
                                     <label class="block text-sm font-medium" for="summit-payment-proof">Payment Proof</label>
-                                    <input id="summit-payment-proof" class="mt-2 block w-full text-sm text-catalyst-ink file:mr-4 file:min-h-11 file:border-0 file:bg-catalyst-primary file:px-4 file:py-3 file:text-sm file:font-medium file:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-catalyst-primary" type="file" accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" x-on:change="const file = $event.target.files[0]; if (file) $wire.selectProof({ name: file.name, type: file.type, size_bytes: file.size })">
+                                    <input id="summit-payment-proof" class="mt-2 block w-full text-sm text-catalyst-ink file:mr-4 file:min-h-11 file:border-0 file:bg-catalyst-primary file:px-4 file:py-3 file:text-sm file:font-medium file:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-catalyst-primary" type="file" accept=".png,.jpg,.jpeg,image/png,image/jpeg" x-on:change="const file = $event.target.files[0]; if (file) $wire.selectProof({ name: file.name, type: file.type, size_bytes: file.size })">
                                     <p class="mt-2 text-xs leading-5 text-catalyst-muted">Prototype stores file metadata only; no proof file is uploaded.</p>
-                                    @error('payment.proof') <p class="mt-2 text-sm text-status-error-ink">Select payment proof before submitting.</p> @enderror
+                                    @error('payment.proof') <p class="mt-2 text-sm text-status-error-ink">{{ $message }}</p> @enderror
                                     @if ($state['payment']['proof'])
                                         <div class="mt-3 flex flex-col gap-3 border border-catalyst-grey/30 p-3 text-sm sm:flex-row sm:items-center sm:justify-between"><p class="min-w-0 truncate"><span class="font-medium">{{ $state['payment']['proof']['name'] }}</span> · {{ $state['payment']['proof']['size_label'] }}</p><button class="w-fit text-sm font-medium text-catalyst-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-catalyst-primary" type="button" wire:click="removeProof">Remove</button></div>
                                     @endif
