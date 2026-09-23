@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Contracts\PrivateFileUrlGenerator;
+use App\Contracts\CompetitionPaymentStorage;
 use App\Models\Payment;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -13,7 +13,7 @@ class CompetitionPaymentProofController extends Controller
     public function __invoke(
         Request $request,
         Payment $payment,
-        PrivateFileUrlGenerator $urlGenerator,
+        CompetitionPaymentStorage $urlGenerator,
     ): RedirectResponse {
         Gate::authorize('view', $payment);
 

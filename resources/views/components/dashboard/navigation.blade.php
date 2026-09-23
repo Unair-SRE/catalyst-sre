@@ -27,6 +27,12 @@
             <p class="px-2 text-xs font-medium uppercase tracking-widest text-catalyst-muted">Competition</p>
             <ul class="mt-2 space-y-1">
                 <li>
+                    <a class="flex items-center gap-3 rounded-md px-2 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-catalyst-primary {{ $active === 'team' ? 'font-semibold text-catalyst-ink' : 'font-medium text-catalyst-muted' }}" href="{{ route('dashboard.team.index') }}" @if ($active === 'team') aria-current="page" @endif>
+                        <svg class="size-4" viewBox="0 0 20 20" fill="none" aria-hidden="true"><circle cx="7" cy="6" r="2.5" stroke="currentColor" stroke-width="1.5"/><circle cx="14" cy="7" r="2" stroke="currentColor" stroke-width="1.5"/><path d="M2.5 16c.5-3 2-4.5 4.5-4.5s4 1.5 4.5 4.5M11.5 12c2.8-.5 4.7.8 5.5 3.5" stroke="currentColor" stroke-linecap="round" stroke-width="1.5"/></svg>
+                        Team
+                    </a>
+                </li>
+                <li>
                     <a class="flex items-center gap-3 rounded-md px-2 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-catalyst-primary {{ $active === 'registration' ? 'font-semibold text-catalyst-ink' : 'font-medium text-catalyst-muted' }}" href="{{ route('dashboard.registration.index') }}" @if ($active === 'registration') aria-current="page" @endif>
                         <svg class="size-4" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                             <path d="M5 2.5h7l3 3v12H5zM12 2.5v3h3M7.5 10h5M7.5 13h5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" />

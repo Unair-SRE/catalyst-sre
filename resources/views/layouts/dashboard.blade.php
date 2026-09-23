@@ -12,6 +12,7 @@
     <body class="dashboard bg-catalyst-background font-sans text-catalyst-ink antialiased">
         <a href="#dashboard-content" class="sr-only fixed top-3 left-3 z-50 bg-white p-3 focus:not-sr-only">Skip to content</a>
         @php($dashboardNavigation = match (true) {
+            request()->routeIs('dashboard.team.*') => 'team',
             request()->routeIs('dashboard.registration.*') => 'registration',
             request()->routeIs('dashboard.submission.*') => 'submission',
             request()->routeIs('dashboard.summit-pass.*') => 'summit-pass',
