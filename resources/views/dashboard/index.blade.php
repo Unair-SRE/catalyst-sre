@@ -3,5 +3,5 @@
 @section('title', 'Participant Dashboard')
 
 @section('content')
-    <livewire:dashboard.overview />
+    <livewire:dashboard.database-overview />
 @endsection

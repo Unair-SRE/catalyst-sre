@@ -20,7 +20,6 @@ final class DashboardProfileState
                 'name' => $user->name,
                 'email' => $user->email,
                 'whatsapp' => $user->whatsapp ?? '',
-                'institution' => 'Universitas Indonesia',
             ],
             'password_policy' => [
                 'minimum_length' => 8,

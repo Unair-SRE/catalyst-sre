@@ -39,13 +39,13 @@ test('captain KTM is validated, stored privately, and old file is cleaned up', f
         ->and($this->ktmStorage->deleted)->toContain('old-captain-ktm');
 });
 
-test('KTM rejects unsupported files and files larger than ten megabytes', function (UploadedFile $file) {
+test('KTM rejects unsupported files and files larger than two megabytes', function (UploadedFile $file) {
     $team = Team::factory()->create();
 
     app(UploadCaptainKtm::class)->handle($team->captain, $team, $file);
 })->with([
     'PDF' => fn () => UploadedFile::fake()->create('ktm.pdf', 100, 'application/pdf'),
-    'too large' => fn () => UploadedFile::fake()->create('ktm.png', 10241, 'image/png'),
+    'too large' => fn () => UploadedFile::fake()->create('ktm.png', 2049, 'image/png'),
 ])->throws(ValidationException::class);
 
 test('participant can manage real team data and member KTM from the dashboard', function () {

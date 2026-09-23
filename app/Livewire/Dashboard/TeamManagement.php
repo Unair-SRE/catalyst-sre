@@ -15,6 +15,7 @@ use Illuminate\View\View;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
+use Throwable;
 
 class TeamManagement extends Component
 {
@@ -67,11 +68,18 @@ class TeamManagement extends Component
     public function uploadCaptainKtm(UploadCaptainKtm $uploadCaptainKtm): void
     {
         $this->validate([
-            'captainKtm' => ['required', 'file', 'mimes:jpg,jpeg,png', 'mimetypes:image/jpeg,image/png', 'max:10240'],
+            'captainKtm' => ['required', 'file', 'mimes:jpg,jpeg,png', 'mimetypes:image/jpeg,image/png', 'max:2048'],
         ]);
 
         $team = $this->teamOrFail();
-        $uploadCaptainKtm->handle(Auth::user(), $team, $this->captainKtm);
+        try {
+            $uploadCaptainKtm->handle(Auth::user(), $team, $this->captainKtm);
+        } catch (Throwable $exception) {
+            report($exception);
+            $this->addError('captainKtm', 'The KTM could not be uploaded. Please try again.');
+
+            return;
+        }
 
         $this->captainKtm = null;
         $this->feedback = 'Captain KTM uploaded.';
@@ -83,10 +91,17 @@ class TeamManagement extends Component
             'memberForm.name' => ['required', 'string', 'max:120'],
             'memberForm.email' => ['required', 'email', 'max:255'],
             'memberForm.whatsapp' => ['required', 'string', 'max:20'],
-            'memberKtm' => ['required', 'file', 'mimes:jpg,jpeg,png', 'mimetypes:image/jpeg,image/png', 'max:10240'],
+            'memberKtm' => ['required', 'file', 'mimes:jpg,jpeg,png', 'mimetypes:image/jpeg,image/png', 'max:2048'],
         ]);
 
-        $createMember->handle(Auth::user(), $this->teamOrFail(), $this->memberForm, $this->memberKtm);
+        try {
+            $createMember->handle(Auth::user(), $this->teamOrFail(), $this->memberForm, $this->memberKtm);
+        } catch (Throwable $exception) {
+            report($exception);
+            $this->addError('memberKtm', 'The member could not be saved. Check the email and KTM, then try again.');
+
+            return;
+        }
 
         $this->resetMemberForm();
         $this->feedback = 'Team member added.';
@@ -116,11 +131,18 @@ class TeamManagement extends Component
             'editMemberForm.name' => ['required', 'string', 'max:120'],
             'editMemberForm.email' => ['required', 'email', 'max:255'],
             'editMemberForm.whatsapp' => ['required', 'string', 'max:20'],
-            'editMemberKtm' => ['nullable', 'file', 'mimes:jpg,jpeg,png', 'mimetypes:image/jpeg,image/png', 'max:10240'],
+            'editMemberKtm' => ['nullable', 'file', 'mimes:jpg,jpeg,png', 'mimetypes:image/jpeg,image/png', 'max:2048'],
         ]);
 
         $member = $this->ownedMember($this->editingMemberId);
-        $updateMember->handle(Auth::user(), $member, $this->editMemberForm, $this->editMemberKtm);
+        try {
+            $updateMember->handle(Auth::user(), $member, $this->editMemberForm, $this->editMemberKtm);
+        } catch (Throwable $exception) {
+            report($exception);
+            $this->addError('editMemberKtm', 'The member could not be updated. Check the data and try again.');
+
+            return;
+        }
 
         $this->cancelEditingMember();
         $this->feedback = 'Team member updated.';

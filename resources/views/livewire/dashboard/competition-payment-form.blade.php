@@ -47,12 +47,14 @@
                             </label>
                             <label class="block text-sm font-medium">Payment Proof
                                 <input class="mt-2 block w-full text-sm" type="file" wire:model="proof" accept=".jpg,.jpeg,.png,image/jpeg,image/png">
-                                <span class="mt-2 block text-xs text-catalyst-muted">JPG, JPEG, or PNG. Maximum 10 MB.</span>
+                                <span class="mt-2 block text-xs text-catalyst-muted">JPG, JPEG, or PNG. Maximum 2 MB.</span>
+                                <span class="mt-2 block text-xs text-catalyst-primary" wire:loading wire:target="proof">Preparing preview...</span>
                                 @error('proof') <span class="mt-1 block text-sm text-status-error-ink">{{ $message }}</span> @enderror
                             </label>
+                            @if ($proof)<div class="border border-catalyst-grey/30 bg-catalyst-neutral p-3"><img class="max-h-48 w-full object-contain" src="{{ $proof->temporaryUrl() }}" alt="Selected payment proof preview"><p class="mt-2 truncate text-xs text-catalyst-muted">{{ $proof->getClientOriginalName() }}</p></div>@endif
                         </div>
                     </div>
-                    <button class="bg-catalyst-primary px-4 py-3 text-sm font-medium text-white disabled:opacity-60" type="submit" wire:loading.attr="disabled">Submit Payment Proof</button>
+                    <button class="bg-catalyst-primary px-4 py-3 text-sm font-medium text-white disabled:opacity-60" type="submit" wire:loading.attr="disabled" wire:confirm="Submit this payment proof? Team data will be locked after upload."><span wire:loading.remove wire:target="submit">Submit Payment Proof</span><span wire:loading wire:target="submit">Uploading...</span></button>
                 </form>
             @endif
         </div>

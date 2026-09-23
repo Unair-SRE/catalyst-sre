@@ -26,7 +26,7 @@ class UpdateTeamMemberWithKtm
             'name' => ['required', 'string', 'max:120'],
             'email' => ['required', 'string', 'email', 'max:255', new AvailableTeamEmail($member->id)],
             'whatsapp' => ['required', 'string', 'max:20'],
-            'ktm' => ['nullable', 'file', 'mimes:jpg,jpeg,png', 'mimetypes:image/jpeg,image/png', 'max:10240'],
+            'ktm' => ['nullable', 'file', 'mimes:jpg,jpeg,png', 'mimetypes:image/jpeg,image/png', 'max:2048'],
         ])->validate();
 
         $storedFile = $ktm ? $this->storage->upload($ktm) : null;

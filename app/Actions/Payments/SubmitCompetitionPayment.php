@@ -25,7 +25,7 @@ class SubmitCompetitionPayment
             ['sender_name' => $senderName, 'proof' => $proof],
             [
                 'sender_name' => ['required', 'string', 'max:120'],
-                'proof' => ['required', 'file', 'mimes:jpg,jpeg,png', 'mimetypes:image/jpeg,image/png', 'max:10240'],
+                'proof' => ['required', 'file', 'mimes:jpg,jpeg,png', 'mimetypes:image/jpeg,image/png', 'max:2048'],
             ],
         )->validate();
 

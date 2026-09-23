@@ -81,13 +81,14 @@
         </div>
 
         <div class="mt-auto pt-4">
-            <button class="flex w-full items-center gap-3 rounded-md px-2 py-2 text-left text-sm text-status-error-ink opacity-60" type="button" disabled title="Logout will be available with authentication">
+            <form method="POST" action="{{ route('logout') }}">@csrf
+            <button class="flex w-full items-center gap-3 rounded-md px-2 py-2 text-left text-sm font-medium text-status-error-ink" type="submit">
                 <svg class="size-4" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                     <path d="M8 3H4.5v14H8m4-10 3 3-3 3m3-3H8" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" />
                 </svg>
                 Logout
-                <span class="sr-only">Unavailable until authentication is implemented</span>
             </button>
+            </form>
         </div>
     </div>
 </nav>

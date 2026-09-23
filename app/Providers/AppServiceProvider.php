@@ -6,6 +6,8 @@ use App\Contracts\CompetitionPaymentStorage;
 use App\Contracts\KtmStorage;
 use App\Services\ImageKitCompetitionPaymentStorage;
 use App\Services\ImageKitKtmStorage;
+use Illuminate\Foundation\DevCommands;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -24,6 +26,17 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        if (! $this->app->runningInConsole()) {
+            return;
+        }
+
+        $uploadTemporaryDirectory = storage_path('app/php-upload-tmp');
+
+        File::ensureDirectoryExists($uploadTemporaryDirectory);
+
+        DevCommands::register(
+            'php -d upload_tmp_dir='.str_replace('\\', '/', $uploadTemporaryDirectory).' artisan serve',
+            'server',
+        );
     }
 }

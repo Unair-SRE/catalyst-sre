@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\EmailVerificationOtpController;
 use App\Http\Controllers\CaptainKtmController;
 use App\Http\Controllers\CompetitionPaymentProofController;
 use App\Http\Controllers\TeamMemberKtmController;
+use App\Models\Competition;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -23,8 +24,14 @@ Route::get('/main-event', function () {
     return view('pages.main-event.index');
 })->name('main-event.index');
 
+Route::get('/competitions', function () {
+    return view('pages.competitions', [
+        'competitions' => Competition::query()->orderBy('id')->get(),
+    ]);
+})->name('competitions.index');
+
 Route::middleware('auth')->group(function () {
-    Route::get('/email/verify', fn () => response()->noContent())
+    Route::get('/email/verify', fn () => view('verify-email'))
         ->name('verification.notice');
 
     Route::post('/email/verify-otp', EmailVerificationOtpController::class)

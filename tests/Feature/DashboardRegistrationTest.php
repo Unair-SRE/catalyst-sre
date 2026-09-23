@@ -1,8 +1,10 @@
 <?php
 
+use App\Enums\CompetitionCode;
 use App\Livewire\Dashboard\Overview;
 use App\Livewire\Dashboard\RegistrationDetail;
 use App\Livewire\Dashboard\RegistrationIndex;
+use App\Models\Competition;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -11,12 +13,15 @@ uses(RefreshDatabase::class);
 
 beforeEach(function () {
     $this->actingAs(User::factory()->create());
+    Competition::factory()->code(CompetitionCode::MiniCase)->create();
+    Competition::factory()->code(CompetitionCode::BusinessCase)->create();
+    Competition::factory()->code(CompetitionCode::BusinessPlan)->create();
 });
 
 test('registration index route renders', function () {
     $this->get(route('dashboard.registration.index'))
         ->assertOk()
-        ->assertSee('Manage your competition registrations and team information');
+        ->assertSee('Choose a competition, review your current team');
 });
 
 test('registration detail route renders for a valid slug', function () {

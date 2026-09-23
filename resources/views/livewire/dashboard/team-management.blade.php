@@ -45,9 +45,11 @@
                         <form class="flex flex-col gap-4 sm:flex-row sm:items-end" wire:submit="uploadCaptainKtm">
                             <label class="block flex-1 text-sm font-medium">{{ $team->captain->hasCompleteKtm() ? 'Replace KTM' : 'Upload KTM' }}
                                 <input class="mt-2 block w-full text-sm" type="file" wire:model="captainKtm" accept=".jpg,.jpeg,.png,image/jpeg,image/png">
-                                <span class="mt-1 block text-xs text-catalyst-muted">JPG, JPEG, or PNG. Maximum 10 MB.</span>
+                                <span class="mt-1 block text-xs text-catalyst-muted">JPG, JPEG, or PNG. Maximum 2 MB.</span>
+                                <span class="mt-1 block text-xs text-catalyst-primary" wire:loading wire:target="captainKtm">Preparing preview...</span>
                                 @error('captainKtm') <span class="mt-1 block text-sm text-status-error-ink">{{ $message }}</span> @enderror
                             </label>
+                            @if ($captainKtm)<img class="max-h-32 border border-catalyst-grey/30 object-contain" src="{{ $captainKtm->temporaryUrl() }}" alt="Captain KTM preview">@endif
                             <button class="bg-catalyst-primary px-4 py-3 text-sm font-medium text-white disabled:opacity-60" type="submit" wire:loading.attr="disabled">Upload</button>
                         </form>
                     @endif
@@ -65,7 +67,7 @@
                                             <label class="text-sm">Email<input class="mt-2 w-full border border-catalyst-grey/50 px-3 py-3" type="email" wire:model="editMemberForm.email">@error('editMemberForm.email') <span class="mt-1 block text-status-error-ink">{{ $message }}</span> @enderror</label>
                                             <label class="text-sm">WhatsApp<input class="mt-2 w-full border border-catalyst-grey/50 px-3 py-3" wire:model="editMemberForm.whatsapp">@error('editMemberForm.whatsapp') <span class="mt-1 block text-status-error-ink">{{ $message }}</span> @enderror</label>
                                         </div>
-                                        <label class="block text-sm">Replace KTM (optional)<input class="mt-2 block w-full" type="file" wire:model="editMemberKtm" accept=".jpg,.jpeg,.png,image/jpeg,image/png">@error('editMemberKtm') <span class="mt-1 block text-status-error-ink">{{ $message }}</span> @enderror</label>
+                                        <label class="block text-sm">Replace KTM (optional)<input class="mt-2 block w-full" type="file" wire:model="editMemberKtm" accept=".jpg,.jpeg,.png,image/jpeg,image/png"><span class="mt-1 block text-xs text-catalyst-muted">JPG, JPEG, or PNG. Maximum 2 MB.</span>@error('editMemberKtm') <span class="mt-1 block text-status-error-ink">{{ $message }}</span> @enderror</label>
                                         <div class="flex gap-3"><button class="bg-catalyst-primary px-4 py-2 text-sm font-medium text-white" type="submit">Save member</button><button class="border border-catalyst-grey/50 px-4 py-2 text-sm" type="button" wire:click="cancelEditingMember">Cancel</button></div>
                                     </form>
                                 @else
@@ -75,7 +77,7 @@
                                             <a class="text-sm font-medium text-catalyst-primary underline underline-offset-4" href="{{ route('dashboard.private-files.team-member-ktm', $member) }}" target="_blank" rel="noopener">View KTM</a>
                                             @if (! $team->isLocked())
                                                 <button class="text-sm font-medium" type="button" wire:click="startEditingMember({{ $member->id }})">Edit</button>
-                                                <button class="text-sm font-medium text-status-error-ink" type="button" wire:click="removeMember({{ $member->id }})" wire:confirm="Remove this member and their KTM?">Remove</button>
+                                                <button class="text-sm font-medium text-status-error-ink" type="button" wire:click="removeMember({{ $member->id }})" wire:confirm="Remove this member and permanently delete their KTM?">Remove</button>
                                             @endif
                                         </div>
                                     </div>
@@ -94,8 +96,9 @@
                                 <label class="text-sm">Email<input class="mt-2 w-full border border-catalyst-grey/50 px-3 py-3" type="email" wire:model="memberForm.email">@error('memberForm.email') <span class="mt-1 block text-status-error-ink">{{ $message }}</span> @enderror</label>
                                 <label class="text-sm">WhatsApp<input class="mt-2 w-full border border-catalyst-grey/50 px-3 py-3" wire:model="memberForm.whatsapp">@error('memberForm.whatsapp') <span class="mt-1 block text-status-error-ink">{{ $message }}</span> @enderror</label>
                             </div>
-                            <label class="block text-sm font-medium">KTM<input class="mt-2 block w-full" type="file" wire:model="memberKtm" accept=".jpg,.jpeg,.png,image/jpeg,image/png"><span class="mt-1 block text-xs text-catalyst-muted">JPG, JPEG, or PNG. Maximum 10 MB.</span>@error('memberKtm') <span class="mt-1 block text-status-error-ink">{{ $message }}</span> @enderror</label>
-                            <button class="bg-catalyst-primary px-4 py-3 text-sm font-medium text-white disabled:opacity-60" type="submit" wire:loading.attr="disabled">Add member</button>
+                            <label class="block text-sm font-medium">KTM<input class="mt-2 block w-full" type="file" wire:model="memberKtm" accept=".jpg,.jpeg,.png,image/jpeg,image/png"><span class="mt-1 block text-xs text-catalyst-muted">JPG, JPEG, or PNG. Maximum 2 MB.</span><span class="mt-1 block text-xs text-catalyst-primary" wire:loading wire:target="memberKtm">Preparing preview...</span>@error('memberKtm') <span class="mt-1 block text-status-error-ink">{{ $message }}</span> @enderror</label>
+                            @if ($memberKtm)<img class="max-h-40 border border-catalyst-grey/30 object-contain" src="{{ $memberKtm->temporaryUrl() }}" alt="Member KTM preview">@endif
+                            <button class="bg-catalyst-primary px-4 py-3 text-sm font-medium text-white disabled:opacity-60" type="submit" wire:loading.attr="disabled"><span wire:loading.remove wire:target="addMember">Add member</span><span wire:loading wire:target="addMember">Uploading...</span></button>
                         </form>
                     @endif
                 </section>

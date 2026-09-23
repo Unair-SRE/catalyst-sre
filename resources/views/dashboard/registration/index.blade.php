@@ -3,5 +3,5 @@
 @section('title', 'Registration')
 
 @section('content')
-    <livewire:dashboard.registration-index />
+    <livewire:dashboard.competition-registration-index />
 @endsection
