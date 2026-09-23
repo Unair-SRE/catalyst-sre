@@ -34,7 +34,7 @@ test('profile fields and legal-name guidance render', function () {
         ->assertSet('profile.email', 'alya@example.test')
         ->assertSet('profile.whatsapp', '081200000000')
         ->assertSee('WhatsApp Number')
-        ->assertSee('Institution / School / University')
+        ->assertDontSee('Institution / School / University')
         ->assertSee('Use your legal name. This name may be used for certificates and official Catalyst documents.');
 });
 
@@ -62,7 +62,7 @@ test('changing profile email requires a new otp verification', function () {
         ->set('profile.email', 'alya.changed@example.test')
         ->call('saveProfile')
         ->assertHasNoErrors()
-        ->assertSee('Profile updated');
+        ->assertRedirect(route('verification.notice'));
 
     $this->user->refresh();
 

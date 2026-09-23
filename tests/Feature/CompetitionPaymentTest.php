@@ -63,13 +63,13 @@ test('a captain can submit one image proof and the team is locked', function () 
         ->and($this->paymentStorage->uploaded)->toHaveCount(1);
 });
 
-test('payment proof must be a jpg jpeg or png no larger than ten megabytes', function (UploadedFile $file) {
+test('payment proof must be a jpg jpeg or png no larger than two megabytes', function (UploadedFile $file) {
     [$team, , $payment] = competitionPaymentFixture();
 
     app(SubmitCompetitionPayment::class)->handle($team->captain, $payment, 'Sender', $file);
 })->with([
     'pdf' => fn () => UploadedFile::fake()->create('proof.pdf', 100, 'application/pdf'),
-    'too large' => fn () => UploadedFile::fake()->create('proof.png', 10241, 'image/png'),
+    'too large' => fn () => UploadedFile::fake()->create('proof.png', 2049, 'image/png'),
 ])->throws(ValidationException::class);
 
 test('a participant cannot submit another team payment', function () {

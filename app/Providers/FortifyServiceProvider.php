@@ -28,6 +28,11 @@ class FortifyServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Fortify::loginView(fn () => view('login'));
+        Fortify::registerView(fn () => view('register'));
+        Fortify::requestPasswordResetLinkView(fn () => view('forgot-password'));
+        Fortify::resetPasswordView(fn (Request $request) => view('reset-password', ['request' => $request]));
+        Fortify::confirmPasswordView(fn () => view('confirm-password'));
         Fortify::createUsersUsing(CreateNewUser::class);
         Fortify::updateUserProfileInformationUsing(UpdateUserProfileInformation::class);
         Fortify::updateUserPasswordsUsing(UpdateUserPassword::class);
@@ -37,6 +42,5 @@ class FortifyServiceProvider extends ServiceProvider
 
             return Limit::perMinute(5)->by($throttleKey);
         });
-
     }
 }

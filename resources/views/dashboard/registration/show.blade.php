@@ -3,5 +3,5 @@
 @section('title', 'Registration')
 
 @section('content')
-    <livewire:dashboard.registration-detail :competition="$competition" />
+    <livewire:dashboard.competition-registration-detail :competition="$competition" />
 @endsection

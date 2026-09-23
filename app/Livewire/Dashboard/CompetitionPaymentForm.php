@@ -13,6 +13,7 @@ use Illuminate\View\View;
 use Livewire\Component;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
+use Throwable;
 
 class CompetitionPaymentForm extends Component
 {
@@ -41,10 +42,17 @@ class CompetitionPaymentForm extends Component
     {
         $this->validate([
             'senderName' => ['required', 'string', 'max:120'],
-            'proof' => ['required', 'file', 'mimes:jpg,jpeg,png', 'mimetypes:image/jpeg,image/png', 'max:10240'],
+            'proof' => ['required', 'file', 'mimes:jpg,jpeg,png', 'mimetypes:image/jpeg,image/png', 'max:2048'],
         ]);
 
-        $submitPayment->handle(Auth::user(), $this->payment(), $this->senderName, $this->proof);
+        try {
+            $submitPayment->handle(Auth::user(), $this->payment(), $this->senderName, $this->proof);
+        } catch (Throwable $exception) {
+            report($exception);
+            $this->addError('proof', 'The payment proof could not be uploaded. Please try again.');
+
+            return;
+        }
 
         $this->proof = null;
         $this->feedback = 'Payment proof submitted and is waiting for verification.';

@@ -19,7 +19,7 @@ class UploadCaptainKtm
     public function handle(User $actor, Team $team, UploadedFile $ktm): User
     {
         Validator::make(['ktm' => $ktm], [
-            'ktm' => ['required', 'file', 'mimes:jpg,jpeg,png', 'mimetypes:image/jpeg,image/png', 'max:10240'],
+            'ktm' => ['required', 'file', 'mimes:jpg,jpeg,png', 'mimetypes:image/jpeg,image/png', 'max:2048'],
         ])->validate();
 
         $oldFileId = $team->captain->ktm_file_id;

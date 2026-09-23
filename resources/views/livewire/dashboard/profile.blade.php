@@ -34,14 +34,9 @@
                         @error('profile.whatsapp') <p id="profile-whatsapp-error" class="mt-2 text-sm text-status-error-ink">{{ $message }}</p> @enderror
                     </div>
 
-                    <div>
-                        <label class="block text-sm font-medium" for="profile-institution">Institution / School / University</label>
-                        <input id="profile-institution" class="mt-2 w-full border border-catalyst-grey/50 bg-white px-3 py-3 text-sm focus:border-catalyst-primary focus:outline-none" type="text" autocomplete="organization" wire:model="profile.institution" @error('profile.institution') aria-invalid="true" aria-describedby="profile-institution-error" @enderror>
-                        @error('profile.institution') <p id="profile-institution-error" class="mt-2 text-sm text-status-error-ink">{{ $message }}</p> @enderror
-                    </div>
                 </div>
 
-                <p class="mt-6 border border-status-warning/30 bg-status-warning/5 p-4 text-sm leading-6 text-catalyst-ink/80">Some profile changes may affect active competition registrations. Production integration will decide which changes require review.</p>
+                <p class="mt-6 border border-status-info/30 bg-status-info/5 p-4 text-sm leading-6 text-catalyst-ink/80">Institution and team information are managed from the Team page. Changing your email requires OTP verification again.</p>
 
                 @if ($profileFeedback)
                     <p class="mt-5 text-sm font-medium text-status-success-ink" role="status">{{ $profileFeedback }}</p>
@@ -59,8 +54,6 @@
                     <p class="mt-2 text-sm leading-6 text-catalyst-ink/75">Change Password</p>
                 </div>
 
-                <p class="mt-5 border border-status-info/30 bg-status-info/5 p-4 text-sm leading-6 text-catalyst-ink/80">This prototype validates form shape only. It does not check or update your real authentication password.</p>
-
                 <div class="mt-6 space-y-5">
                     <div>
                         <label class="block text-sm font-medium" for="current-password">Current Password</label>
@@ -70,7 +63,7 @@
                     <div>
                         <label class="block text-sm font-medium" for="new-password">New Password</label>
                         <input id="new-password" class="mt-2 w-full border border-catalyst-grey/50 bg-white px-3 py-3 text-sm focus:border-catalyst-primary focus:outline-none" type="password" autocomplete="new-password" wire:model="password.new" aria-describedby="new-password-help @error('password.new') new-password-error @enderror" @error('password.new') aria-invalid="true" @enderror>
-                        <p id="new-password-help" class="mt-2 text-xs leading-5 text-catalyst-muted">Use at least {{ $state['password_policy']['minimum_length'] }} characters for this prototype.</p>
+                        <p id="new-password-help" class="mt-2 text-xs leading-5 text-catalyst-muted">Use at least {{ $state['password_policy']['minimum_length'] }} characters.</p>
                         @error('password.new') <p id="new-password-error" class="mt-1 text-sm text-status-error-ink">{{ $message }}</p> @enderror
                     </div>
                     <div>

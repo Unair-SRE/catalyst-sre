@@ -108,7 +108,7 @@ class PaymentResource extends Resource
                         FileUpload::make('proof')
                             ->required()
                             ->acceptedFileTypes(['image/jpeg', 'image/png'])
-                            ->maxSize(10240)
+                            ->maxSize(2048)
                             ->storeFiles(false),
                     ])
                     ->fillForm(fn (Payment $record): array => ['sender_name' => $record->sender_name])

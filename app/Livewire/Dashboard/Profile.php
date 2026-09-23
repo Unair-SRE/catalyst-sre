@@ -37,6 +37,7 @@ class Profile extends Component
 
     public function saveProfile(): void
     {
+        $emailChanged = $this->profile['email'] !== Auth::user()->email;
         $this->validate([
             'profile.name' => 'required|string|max:120',
             'profile.email' => 'required|email|max:160',
@@ -58,6 +59,10 @@ class Profile extends Component
         $this->profile = app(DashboardProfileState::class)->get()['profile'];
         $this->originalProfile = $this->profile;
         $this->profileFeedback = 'Profile updated';
+
+        if ($emailChanged) {
+            $this->redirectRoute('verification.notice');
+        }
     }
 
     public function resetProfile(): void
