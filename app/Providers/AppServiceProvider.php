@@ -4,8 +4,10 @@ namespace App\Providers;
 
 use App\Contracts\CompetitionPaymentStorage;
 use App\Contracts\KtmStorage;
+use App\Contracts\SummitPaymentStorage;
 use App\Services\ImageKitCompetitionPaymentStorage;
 use App\Services\ImageKitKtmStorage;
+use App\Services\ImageKitSummitPaymentStorage;
 use Illuminate\Foundation\DevCommands;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\ServiceProvider;
@@ -19,6 +21,7 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->bind(CompetitionPaymentStorage::class, ImageKitCompetitionPaymentStorage::class);
         $this->app->bind(KtmStorage::class, ImageKitKtmStorage::class);
+        $this->app->bind(SummitPaymentStorage::class, ImageKitSummitPaymentStorage::class);
     }
 
     /**
