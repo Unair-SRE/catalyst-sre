@@ -3,8 +3,51 @@
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
+@font-face {
+    font-family: 'PP Mori';
+    src: url('../fonts/pp-mori/PPMori-Extralight.otf') format('opentype');
+    font-weight: 200;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'PP Mori';
+    src: url('../fonts/pp-mori/PPMori-ExtralightItalic.otf') format('opentype');
+    font-weight: 200;
+    font-style: italic;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'PP Mori';
+    src: url('../fonts/pp-mori/PPMori-Regular.otf') format('opentype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'PP Mori';
+    src: url('../fonts/pp-mori/PPMori-RegularItalic.otf') format('opentype');
+    font-weight: 400;
+    font-style: italic;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'PP Mori';
+    src: url('../fonts/pp-mori/PPMori-SemiBold.otf') format('opentype');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+}
+@font-face {
+    font-family: 'PP Mori';
+    src: url('../fonts/pp-mori/PPMori-SemiBoldItalic.otf') format('opentype');
+    font-weight: 600;
+    font-style: italic;
+    font-display: swap;
+}
+
 @theme {
-    --font-display: 'PP Mori', 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'PP Mori', ui-sans-serif, system-ui, sans-serif;
     --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 
@@ -119,6 +162,164 @@
         pointer-events: none;
         user-select: none;
     }
+    .home-about-stat {
+        position: relative;
+    }
+    .home-about-stat:not(:last-child)::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        width: min(82%, 18rem);
+        height: 1px;
+        background: color-mix(in srgb, var(--color-catalyst-grey) 30%, transparent);
+    }
+    .home-horizon__word {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        justify-content: space-between;
+        padding-inline: .015em;
+        font-size: clamp(4.5rem, 17vw, 15.25rem);
+        font-weight: 600;
+        letter-spacing: -.06em;
+    }
+    .home-horizon__light {
+        position: absolute;
+        z-index: 1;
+        top: 0;
+        bottom: 0;
+        width: 56%;
+        opacity: 0;
+        pointer-events: none;
+        will-change: transform, opacity;
+        animation-duration: 3640.519ms;
+        animation-timing-function: linear;
+        animation-iteration-count: infinite;
+    }
+    .home-horizon__light--left {
+        left: 0;
+        background: linear-gradient(90deg, white 34%, rgb(255 255 255 / 94%) 62%, rgb(255 255 255 / 62%) 82%, transparent 100%);
+        transform-origin: left center;
+        animation-name: home-horizon-light-left;
+    }
+    .home-horizon__light--right {
+        right: 0;
+        background: linear-gradient(270deg, white 34%, rgb(255 255 255 / 94%) 62%, rgb(255 255 255 / 62%) 82%, transparent 100%);
+        transform-origin: right center;
+        animation-name: home-horizon-light-right;
+    }
+    .home-competition-card--active::before {
+        content: '';
+        position: absolute;
+        z-index: -1;
+        inset: -2px;
+        background: conic-gradient(
+            from 0deg,
+            var(--color-catalyst-primary),
+            color-mix(in srgb, var(--color-catalyst-primary) 62%, var(--color-catalyst-ink)),
+            var(--color-catalyst-lime),
+            var(--color-catalyst-primary)
+        );
+        pointer-events: none;
+        will-change: transform;
+        animation: home-active-border 7s linear infinite;
+    }
+    .home-timeline__grid {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        grid-template-rows: repeat(2, minmax(10.5rem, 1fr));
+        column-gap: 1rem;
+        row-gap: 3rem;
+    }
+    .home-timeline__grid::before,
+    .home-timeline__grid::after {
+        content: '';
+        position: absolute;
+        z-index: 0;
+        left: 1rem;
+        right: 1rem;
+        border-top: 1px dashed color-mix(in srgb, var(--color-catalyst-primary) 40%, transparent);
+    }
+    .home-timeline__grid::before { top: 1rem; }
+    .home-timeline__grid::after { top: calc(50% + 2.5rem); }
+    .home-timeline__turn {
+        position: absolute;
+        z-index: 0;
+        top: 1rem;
+        right: 1rem;
+        height: calc(50% + 1.5rem);
+        border-right: 1px dashed color-mix(in srgb, var(--color-catalyst-primary) 40%, transparent);
+    }
+    .home-timeline__grid > li:nth-of-type(1) { grid-column: 1; grid-row: 1; }
+    .home-timeline__grid > li:nth-of-type(2) { grid-column: 2; grid-row: 1; }
+    .home-timeline__grid > li:nth-of-type(3) { grid-column: 3; grid-row: 1; }
+    .home-timeline__grid > li:nth-of-type(4) { grid-column: 4; grid-row: 1; }
+    .home-timeline__grid > li:nth-of-type(5) { grid-column: 5; grid-row: 1; }
+    .home-timeline__grid > li:nth-of-type(6) { grid-column: 5; grid-row: 2; }
+    .home-timeline__grid > li:nth-of-type(7) { grid-column: 4; grid-row: 2; }
+    .home-timeline__grid > li:nth-of-type(8) { grid-column: 3; grid-row: 2; }
+    .home-timeline__grid > li:nth-of-type(9) { grid-column: 2; grid-row: 2; }
+    .home-timeline__grid > li:nth-of-type(10) { grid-column: 1; grid-row: 2; }
+    .home-people-marquee {
+        width: 100%;
+        overflow: hidden;
+    }
+    .home-people-marquee__track {
+        display: flex;
+        width: max-content;
+        will-change: transform;
+        animation: home-people-marquee 48s linear infinite;
+    }
+    .home-people-marquee__group {
+        display: flex;
+        gap: 1.25rem;
+        padding-right: 1.25rem;
+    }
+    .home-people-card {
+        width: clamp(13rem, 20vw, 17.5rem);
+        flex: none;
+    }
+    .home-page [data-reveal] {
+        opacity: 1;
+        transform: none;
+    }
+    .home-page[data-reveal-ready='true'] [data-reveal] {
+        transition: opacity 620ms cubic-bezier(.22, 1, .36, 1),
+            transform 620ms cubic-bezier(.22, 1, .36, 1);
+        transition-delay: var(--reveal-delay, 0ms);
+    }
+    .home-page[data-reveal-ready='true'] [data-reveal]:not(.is-revealed) {
+        opacity: 0;
+        transform: translateY(1.25rem);
+    }
+    .home-partnership {
+        border: 1px solid transparent;
+        background:
+            linear-gradient(white, white) padding-box,
+            linear-gradient(to bottom, rgb(255 255 255 / 35%), color-mix(in srgb, var(--color-catalyst-primary) 82%, white)) border-box;
+    }
+    @keyframes home-horizon-light-left {
+        0%, 11.056% { opacity: 0; transform: translateX(-118%) scaleX(1); }
+        22.057% { opacity: .82; transform: translateX(-48%) scaleX(1); }
+        33.031% { opacity: .96; transform: translateX(-6%) scaleX(1); }
+        45.063% { opacity: .96; transform: translateX(0) scaleX(1); }
+        55.326% { opacity: .9; transform: translateX(0) scaleX(1.1); }
+        100% { opacity: 0; transform: translateX(-118%) scaleX(4); }
+    }
+    @keyframes home-horizon-light-right {
+        0%, 11.056% { opacity: 0; transform: translateX(118%) scaleX(1); }
+        22.057% { opacity: .82; transform: translateX(48%) scaleX(1); }
+        33.031% { opacity: .96; transform: translateX(6%) scaleX(1); }
+        45.063% { opacity: .96; transform: translateX(0) scaleX(1); }
+        55.326% { opacity: .9; transform: translateX(0) scaleX(1.1); }
+        100% { opacity: 0; transform: translateX(118%) scaleX(4); }
+    }
+    @keyframes home-active-border {
+        to { transform: rotate(1turn); }
+    }
+    @keyframes home-people-marquee {
+        to { transform: translateX(-50%); }
+    }
     .public-site :where(a, summary) {
         transition: color 180ms ease, background-color 180ms ease,
             border-color 180ms ease, transform 180ms ease;
@@ -230,4 +431,12 @@
     }
     .dashboard :where(a, button, .competition-card):hover,
     .dashboard :where(a, button):active { transform: none; }
+    .home-people-marquee { overflow-x: auto; }
+    .home-people-marquee__track { will-change: auto; }
+    .home-people-marquee__group[aria-hidden='true'] { display: none; }
+    .home-horizon__light { display: none; }
+    .home-page[data-reveal-ready='true'] [data-reveal] {
+        opacity: 1;
+        transform: none;
+    }
 }
