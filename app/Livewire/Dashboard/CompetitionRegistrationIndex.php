@@ -42,13 +42,21 @@ class CompetitionRegistrationIndex extends Component
 
     private function registrationWindow(Competition $competition): string
     {
+        if (! $competition->registration_open) {
+            return 'Registration closed';
+        }
+
         if ($competition->registration_start_at?->isFuture()) {
             return 'Opens '.$competition->registration_start_at->format('d M Y, H:i').' WIB';
         }
 
+        if ($competition->registration_end_at?->isPast()) {
+            return 'Closed '.$competition->registration_end_at->format('d M Y, H:i').' WIB';
+        }
+
         return $competition->registration_end_at
             ? 'Closes '.$competition->registration_end_at->format('d M Y, H:i').' WIB'
-            : ($competition->registration_open ? 'Registration open' : 'Registration closed');
+            : 'Registration open';
     }
 
     private function registrationStatus(?RegistrationStatus $status): array

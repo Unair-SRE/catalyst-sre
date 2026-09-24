@@ -7,6 +7,7 @@ use App\Livewire\Dashboard\TeamManagement;
 use App\Models\Team;
 use App\Models\TeamMember;
 use App\Models\User;
+use App\Support\Files\StoredPrivateFile;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\ValidationException;
@@ -78,6 +79,68 @@ test('participant can manage real team data and member KTM from the dashboard', 
 
     expect($team->fresh()->hasCompleteKtm())->toBeTrue()
         ->and($team->members()->first()->ktm_file_id)->toStartWith('ktm-fake-');
+});
+
+test('team management explains the two megabyte KTM limit', function () {
+    $team = Team::factory()->create();
+
+    Livewire::actingAs($team->captain)
+        ->test(TeamManagement::class)
+        ->set('memberKtm', UploadedFile::fake()->create('large-ktm.png', 2049, 'image/png'))
+        ->assertHasErrors(['memberKtm' => 'max'])
+        ->assertSee('The KTM must not exceed 2 MB.');
+});
+
+test('duplicate member email is rejected before KTM storage is called', function () {
+    User::factory()->create(['email' => 'registered@example.test']);
+    $team = Team::factory()->create();
+
+    Livewire::actingAs($team->captain)
+        ->test(TeamManagement::class)
+        ->set('memberForm.name', 'Existing Account')
+        ->set('memberForm.email', 'REGISTERED@example.test')
+        ->set('memberForm.whatsapp', '081300000000')
+        ->set('memberKtm', UploadedFile::fake()->create('member.png', 100, 'image/png'))
+        ->call('addMember')
+        ->assertHasErrors('memberForm.email')
+        ->assertSee('This email is already used by an account or team member.');
+
+    expect($this->ktmStorage->uploaded)->toBeEmpty();
+    $this->assertDatabaseCount('team_members', 0);
+});
+
+test('team management reports unavailable KTM storage without creating a member', function () {
+    $this->app->instance(KtmStorage::class, new class extends FakeKtmStorage
+    {
+        public function upload(UploadedFile $file): StoredPrivateFile
+        {
+            throw new RuntimeException('IMAGEKIT_PUBLIC_KEY is not configured.');
+        }
+    });
+
+    $team = Team::factory()->create();
+
+    Livewire::actingAs($team->captain)
+        ->test(TeamManagement::class)
+        ->set('memberForm.name', 'Storage Test')
+        ->set('memberForm.email', 'storage@example.test')
+        ->set('memberForm.whatsapp', '081300000000')
+        ->set('memberKtm', UploadedFile::fake()->create('member.png', 100, 'image/png'))
+        ->call('addMember')
+        ->assertHasErrors('memberKtm')
+        ->assertSee('KTM storage is not configured. Contact the Catalyst administrator before trying again.');
+
+    $this->assertDatabaseCount('team_members', 0);
+});
+
+test('team management explains when selected KTM files are persisted', function () {
+    $team = Team::factory()->create();
+
+    Livewire::actingAs($team->captain)
+        ->test(TeamManagement::class)
+        ->assertSee('Selecting a file prepares a private preview.')
+        ->assertSee('Save captain KTM')
+        ->assertSee('The member record and KTM are saved together');
 });
 
 test('removing a member also removes the stored KTM', function () {
