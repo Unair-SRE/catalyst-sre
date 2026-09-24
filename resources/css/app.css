@@ -185,30 +185,46 @@
         letter-spacing: -.06em;
     }
     .home-horizon__light {
-        position: absolute;
-        z-index: 1;
-        top: 0;
-        bottom: 0;
-        width: 56%;
-        opacity: 0;
-        pointer-events: none;
-        will-change: transform, opacity;
-        animation-duration: 3640.519ms;
-        animation-timing-function: linear;
-        animation-iteration-count: infinite;
-    }
+    position: absolute;
+    z-index: 10;
+    top: 0;
+    bottom: 0;
+    width: 65%;
+    opacity: 0;
+    background: #fff;
+    pointer-events: none;
+    will-change: transform, opacity;
+    animation-duration: 3640.519ms;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+}
     .home-horizon__light--left {
-        left: 0;
-        background: linear-gradient(90deg, white 34%, rgb(255 255 255 / 94%) 62%, rgb(255 255 255 / 62%) 82%, transparent 100%);
-        transform-origin: left center;
-        animation-name: home-horizon-light-left;
-    }
-    .home-horizon__light--right {
-        right: 0;
-        background: linear-gradient(270deg, white 34%, rgb(255 255 255 / 94%) 62%, rgb(255 255 255 / 62%) 82%, transparent 100%);
-        transform-origin: right center;
-        animation-name: home-horizon-light-right;
-    }
+    left: 0;
+    background: linear-gradient(
+        90deg,
+        #fff 0%,
+        #fff 100%,
+        rgb(255 255 255 / 95%) 82%,
+        rgb(255 255 255 / 60%) 92%,
+        transparent 100%
+    );
+    transform-origin: left center;
+    animation-name: home-horizon-light-left;
+}
+
+.home-horizon__light--right {
+    right: 0;
+    background: linear-gradient(
+        270deg,
+        #fff 0%,
+        #fff 100%,
+        rgb(255 255 255 / 95%) 82%,
+        rgb(255 255 255 / 60%) 92%,
+        transparent 100%
+    );
+    transform-origin: right center;
+    animation-name: home-horizon-light-right;
+}
     .home-competition-card--active::before {
         content: '';
         position: absolute;
@@ -298,22 +314,49 @@
             linear-gradient(white, white) padding-box,
             linear-gradient(to bottom, rgb(255 255 255 / 35%), color-mix(in srgb, var(--color-catalyst-primary) 82%, white)) border-box;
     }
-    @keyframes home-horizon-light-left {
-        0%, 11.056% { opacity: 0; transform: translateX(-118%) scaleX(1); }
-        22.057% { opacity: .82; transform: translateX(-48%) scaleX(1); }
-        33.031% { opacity: .96; transform: translateX(-6%) scaleX(1); }
-        45.063% { opacity: .96; transform: translateX(0) scaleX(1); }
-        55.326% { opacity: .9; transform: translateX(0) scaleX(1.1); }
-        100% { opacity: 0; transform: translateX(-118%) scaleX(4); }
+   @keyframes home-horizon-light-left {
+    0%, 10% {
+        opacity: 0;
+        transform: translateX(-110%);
     }
-    @keyframes home-horizon-light-right {
-        0%, 11.056% { opacity: 0; transform: translateX(118%) scaleX(1); }
-        22.057% { opacity: .82; transform: translateX(48%) scaleX(1); }
-        33.031% { opacity: .96; transform: translateX(6%) scaleX(1); }
-        45.063% { opacity: .96; transform: translateX(0) scaleX(1); }
-        55.326% { opacity: .9; transform: translateX(0) scaleX(1.1); }
-        100% { opacity: 0; transform: translateX(118%) scaleX(4); }
+
+    25% {
+        opacity: 1;
+        transform: translateX(-45%);
     }
+
+    40%, 55% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    75%, 100% {
+        opacity: 0;
+        transform: translateX(-110%);
+    }
+}
+
+@keyframes home-horizon-light-right {
+    0%, 10% {
+        opacity: 0;
+        transform: translateX(110%);
+    }
+
+    25% {
+        opacity: 1;
+        transform: translateX(45%);
+    }
+
+    40%, 55% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    75%, 100% {
+        opacity: 0;
+        transform: translateX(110%);
+    }
+}
     @keyframes home-active-border {
         to { transform: rotate(1turn); }
     }
