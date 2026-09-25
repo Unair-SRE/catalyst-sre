@@ -22,7 +22,7 @@ test('a ticket renders to a valid pdf document', function () {
 
     expect($html)
         ->toContain($ticket->ticket_code)
-        ->toContain($ticket->holder_name);
+        ->toContain(e($ticket->holder_name));
 
     expect($pdf)->toStartWith('%PDF')->and(strlen($pdf))->toBeGreaterThan(1000);
 });
