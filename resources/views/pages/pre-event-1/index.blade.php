@@ -3,8 +3,21 @@
 @section('title', 'Pre-Event 1')
 
 @section('content')
-    <x-ui.container class="py-16 sm:py-24">
-        <h1 class="font-display text-3xl font-medium tracking-tight sm:text-4xl">Pre-Event 1</h1>
-        <p class="mt-4 max-w-xl text-catalyst-ink/70">Pre-Event 1 foundation placeholder.</p>
-    </x-ui.container>
+
+    @include('pages.pre-event-1.sections.hero')
+
+    @include('pages.pre-event-1.sections.about')
+
+    @include('pages.pre-event-1.sections.overview')
+
+    @include('pages.pre-event-1.sections.experience')
+
+    @include('pages.pre-event-1.sections.timeline')
+
+    @include('pages.pre-event-1.sections.people')
+
+    @include('pages.pre-event-1.sections.highlights')
+
+    @include('pages.pre-event-1.sections.next')
+
 @endsection
