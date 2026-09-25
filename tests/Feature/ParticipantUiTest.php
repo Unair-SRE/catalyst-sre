@@ -52,6 +52,38 @@ test('registration index displays real registration and payment states', functio
         ->assertSee('View Registration');
 });
 
+test('registration cards render competition information from the database', function () {
+    $team = Team::factory()->create();
+    Competition::factory()->code(CompetitionCode::BusinessCase)->create([
+        'name' => 'Database Competition Name',
+        'description' => 'Content maintained in the competition record.',
+        'registration_fee' => 123456,
+        'registration_open' => true,
+        'registration_start_at' => now()->subDay(),
+        'registration_end_at' => now()->addWeek(),
+    ]);
+
+    Livewire::actingAs($team->captain)
+        ->test(CompetitionRegistrationIndex::class)
+        ->assertSee('Database Competition Name')
+        ->assertSee('Content maintained in the competition record.')
+        ->assertSee('IDR 123.456');
+});
+
+test('registration cards respect the database availability switch', function () {
+    $team = Team::factory()->create();
+    Competition::factory()->code(CompetitionCode::BusinessPlan)->create([
+        'registration_open' => false,
+        'registration_start_at' => now()->addDay(),
+        'registration_end_at' => now()->addWeek(),
+    ]);
+
+    Livewire::actingAs($team->captain)
+        ->test(CompetitionRegistrationIndex::class)
+        ->assertSee('Registration closed')
+        ->assertDontSee('Opens ');
+});
+
 test('registration detail blocks incomplete teams and creates a real registration for complete teams', function () {
     $team = Team::factory()->create();
     $competition = Competition::factory()->code(CompetitionCode::MiniCase)->create([
