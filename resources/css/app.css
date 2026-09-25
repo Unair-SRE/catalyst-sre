@@ -88,14 +88,14 @@
         position: relative;
         display: flex;
         width: calc(100% - 2.5rem);
-        max-width: 77.5rem;
+        max-width: 82rem;
         min-height: 4rem;
         margin-inline: auto;
         align-items: center;
         justify-content: space-between;
         gap: 1rem;
         border: 1px solid transparent;
-        padding-inline: 0;
+        padding-inline: 1.5rem;
         pointer-events: auto;
         transition: background-color 200ms ease, backdrop-filter 200ms ease, color 200ms ease;
     }
@@ -186,26 +186,26 @@
     }
     .home-horizon__light {
     position: absolute;
-    z-index: 10;
+    z-index: 1;
     top: 0;
     bottom: 0;
-    width: 65%;
+    width: 56%;
     opacity: 0;
-    background: #fff;
     pointer-events: none;
     will-change: transform, opacity;
     animation-duration: 3640.519ms;
     animation-timing-function: linear;
     animation-iteration-count: infinite;
 }
-    .home-horizon__light--left {
+
+.home-horizon__light--left {
     left: 0;
     background: linear-gradient(
         90deg,
-        #fff 0%,
-        #fff 100%,
-        rgb(255 255 255 / 95%) 82%,
-        rgb(255 255 255 / 60%) 92%,
+        #ffffff 0%,
+        #ffffff 65%,
+        rgb(255 255 255 / 95%) 78%,
+        rgb(255 255 255 / 60%) 90%,
         transparent 100%
     );
     transform-origin: left center;
@@ -216,10 +216,10 @@
     right: 0;
     background: linear-gradient(
         270deg,
-        #fff 0%,
-        #fff 100%,
-        rgb(255 255 255 / 95%) 82%,
-        rgb(255 255 255 / 60%) 92%,
+        #ffffff 0%,
+        #ffffff 65%,
+        rgb(255 255 255 / 95%) 78%,
+        rgb(255 255 255 / 60%) 90%,
         transparent 100%
     );
     transform-origin: right center;
@@ -404,7 +404,7 @@
         content: '';
         position: absolute;
         inset-inline: 0;
-        top: 0;
+        bottom: 0;
         height: 18rem;
         background: linear-gradient(to bottom, rgb(255 255 255 / 0%), var(--color-yellow-300, #fde047));
         pointer-events: none;
@@ -423,49 +423,87 @@
     .main-event-partner-marquee--reverse .home-people-marquee__track {
         animation-direction: reverse;
     }
+
+@property --golden-border-angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+}
+
+.main-event-animated-border {
+    position: relative;
+    isolation: isolate;
+}
+
+@property --golden-border-angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+}
+
+.main-event-animated-border {
+    position: relative;
+    isolation: isolate;
+    background: white;
+}
+
+/* Gradient border */
+.main-event-animated-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    padding: 4px; /* ← KETEBALAN BORDER */
+
+    background: conic-gradient(
+        from var(--golden-border-angle),
+        #006d6a,
+        #6ab266,
+        #c6d34f,
+        #fde047,
+        #c6d34f,
+        #6ab266,
+        #006d6a
+    );
+
+    /* Bolongkan bagian tengah */
+    -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+
+    pointer-events: none;
+    animation: golden-border-spin 5s linear infinite;
+}
+
+@keyframes golden-border-spin {
+    to {
+        --golden-border-angle: 360deg;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .main-event-animated-border::before {
+        animation: none;
+    }
+}
    @keyframes home-horizon-light-left {
-    0%, 10% {
-        opacity: 0;
-        transform: translateX(-110%);
+        0%, 11.056% { opacity: 0; transform: translateX(-118%) scaleX(1); }
+        22.057% { opacity: .82; transform: translateX(-48%) scaleX(1); }
+        33.031% { opacity: .96; transform: translateX(-6%) scaleX(1); }
+        45.063% { opacity: .96; transform: translateX(0) scaleX(1); }
+        55.326% { opacity: .9; transform: translateX(0) scaleX(1.1); }
+        100% { opacity: 0; transform: translateX(-118%) scaleX(4); }
+    }
+    @keyframes home-horizon-light-right {
+        0%, 11.056% { opacity: 0; transform: translateX(118%) scaleX(1); }
+        22.057% { opacity: .82; transform: translateX(48%) scaleX(1); }
+        33.031% { opacity: .96; transform: translateX(6%) scaleX(1); }
+        45.063% { opacity: .96; transform: translateX(0) scaleX(1); }
+        55.326% { opacity: .9; transform: translateX(0) scaleX(1.1); }
+        100% { opacity: 0; transform: translateX(118%) scaleX(4); }
     }
 
-    25% {
-        opacity: 1;
-        transform: translateX(-45%);
-    }
-
-    40%, 55% {
-        opacity: 1;
-        transform: translateX(0);
-    }
-
-    75%, 100% {
-        opacity: 0;
-        transform: translateX(-110%);
-    }
-}
-
-@keyframes home-horizon-light-right {
-    0%, 10% {
-        opacity: 0;
-        transform: translateX(110%);
-    }
-
-    25% {
-        opacity: 1;
-        transform: translateX(45%);
-    }
-
-    40%, 55% {
-        opacity: 1;
-        transform: translateX(0);
-    }
-
-    75%, 100% {
-        opacity: 0;
-        transform: translateX(110%);
-    }
-}
     @keyframes home-active-border {
         to { transform: rotate(1turn); }
     }
