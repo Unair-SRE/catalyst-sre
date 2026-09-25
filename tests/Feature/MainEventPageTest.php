@@ -5,7 +5,10 @@ test('main event page renders the complete public summit narrative', function ()
         ->assertOk()
         ->assertViewIs('pages.main-event.index')
         ->assertSee('The final stage of')
-        ->assertSee('29 November 2026')
+        ->assertSee('29 Nov 2026')
+        ->assertSee('images/icon/arrow-down-icon-mainevent.svg', false)
+        ->assertSee('Contact person')
+        ->assertSee('Alya Putri')
         ->assertSeeInOrder([
             'Main Event at a glance',
             'About Catalyst Summit',
@@ -14,13 +17,13 @@ test('main event page renders the complete public summit narrative', function ()
             'Golden Ticket',
             'Competition Journey',
             'Talkshow',
-            'Exhibition &amp; Innovation Showcase',
+            'Exhibition',
             'Summit Pass',
-            'Catalyst 2026 Timeline',
-            'Resources &amp; Rules',
-            'Why Join',
+            'Main Event Timeline',
+            'Guidebook and Resource',
+            'Why Join Catalyst',
             'People of Catalyst Summit',
-            'Partners behind Catalyst 2026',
+            'Sponsor and Partner',
             'FAQ',
             'Join Catalyst Summit',
         ], false)
@@ -35,9 +38,12 @@ test('main event uses real public routes and safe placeholders for unfinished de
         ->assertSee(route('pre-event-1.index'))
         ->assertSee('data-link-todo="summit-pass"', false)
         ->assertSee('data-link-todo="mcc-guidebook"', false)
-        ->assertSee('The complete road to Catalyst Summit.')
+        ->assertSee('Key Dates on the Road to 29 November.')
         ->assertSee('data-timeline-state=', false)
         ->assertSee('home-people-marquee__track', false)
-        ->assertSee('Price')
+        ->assertSee('data-people-filter="speaker"', false)
+        ->assertSee('main-event-gradient-surface', false)
+        ->assertSee('main-event-gradient-surface__scale', false)
+        ->assertSee('Open guidebook')
         ->assertSee('To be announced');
 });

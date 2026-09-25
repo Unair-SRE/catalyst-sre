@@ -314,6 +314,115 @@
             linear-gradient(white, white) padding-box,
             linear-gradient(to bottom, rgb(255 255 255 / 35%), color-mix(in srgb, var(--color-catalyst-primary) 82%, white)) border-box;
     }
+    .main-event-gradient-surface {
+        background: linear-gradient(
+            to bottom,
+            white 0%,
+            color-mix(in srgb, var(--color-catalyst-lime) 13%, white) 48%,
+            color-mix(in srgb, var(--color-catalyst-green) 22%, white) 100%
+        );
+    }
+    .main-event-gradient-surface::before,
+    .main-event-gradient-surface::after,
+    .main-event-gradient-surface__scale {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+    }
+    .main-event-gradient-surface::before,
+    .main-event-gradient-surface::after {
+        content: '';
+    }
+    .main-event-gradient-surface::before {
+        opacity: .4;
+        background:
+            radial-gradient(circle at 12% 100%, color-mix(in srgb, var(--color-catalyst-lime) 78%, transparent), transparent 52%),
+            linear-gradient(to bottom, white 0%, transparent 68%);
+        will-change: opacity;
+        animation: main-event-golden-soft-opacity 2000ms infinite;
+    }
+    .main-event-gradient-surface::after {
+        opacity: 1;
+        background: linear-gradient(
+            to top right,
+            color-mix(in srgb, var(--color-catalyst-green) 22%, transparent),
+            color-mix(in srgb, var(--color-catalyst-lime) 28%, transparent) 48%,
+            transparent 76%
+        );
+        will-change: opacity;
+        animation: main-event-golden-delayed-opacity 2000ms linear infinite;
+    }
+    .main-event-gradient-surface__scale {
+        inset: -20%;
+        opacity: .55;
+        background: radial-gradient(
+            ellipse at 52% 100%,
+            color-mix(in srgb, var(--color-catalyst-lime) 52%, transparent),
+            transparent 68%
+        );
+        transform: scale(1);
+        transform-origin: center bottom;
+        will-change: transform;
+        animation: main-event-golden-scale 2000ms linear infinite;
+    }
+    .main-event-animated-border {
+        position: relative;
+        isolation: isolate;
+        overflow: hidden;
+        border: 2px solid transparent;
+    }
+    .main-event-animated-border::before,
+    .main-event-animated-border::after {
+        content: '';
+        position: absolute;
+        pointer-events: none;
+    }
+    .main-event-animated-border::before {
+        z-index: -2;
+        inset: -100%;
+        background: conic-gradient(
+            from 0deg,
+            var(--color-catalyst-primary),
+            var(--color-catalyst-green),
+            var(--color-catalyst-lime),
+            var(--color-catalyst-primary)
+        );
+        will-change: transform;
+        animation: home-active-border 8s linear infinite;
+    }
+    .main-event-animated-border::after {
+        z-index: -1;
+        inset: 0;
+        background: white;
+    }
+    .main-event-talkshow-light {
+        position: relative;
+        overflow: hidden;
+        background: white;
+    }
+    .main-event-talkshow-light::before {
+        content: '';
+        position: absolute;
+        inset-inline: 0;
+        top: 0;
+        height: 18rem;
+        background: linear-gradient(to bottom, rgb(255 255 255 / 0%), var(--color-yellow-300, #fde047));
+        pointer-events: none;
+    }
+    .main-event-final-card {
+        background:
+            radial-gradient(circle at 0% 50%, color-mix(in srgb, var(--color-catalyst-green) 34%, transparent), transparent 38%),
+            radial-gradient(circle at 100% 42%, color-mix(in srgb, var(--color-catalyst-lime) 44%, transparent), transparent 36%),
+            white;
+        background-size: 150% 150%;
+        animation: main-event-gradient-shift 12s ease-in-out infinite alternate;
+    }
+    .main-event-partner-marquee .home-people-marquee__track {
+        animation-duration: 36s;
+    }
+    .main-event-partner-marquee--reverse .home-people-marquee__track {
+        animation-direction: reverse;
+    }
    @keyframes home-horizon-light-left {
     0%, 10% {
         opacity: 0;
@@ -362,6 +471,33 @@
     }
     @keyframes home-people-marquee {
         to { transform: translateX(-50%); }
+    }
+    @keyframes main-event-gradient-shift {
+        0%, 100% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+    }
+    @keyframes main-event-golden-soft-opacity {
+        0% {
+            opacity: 0;
+            animation-timing-function: cubic-bezier(0, 0, .58, 1);
+        }
+        60%, 100% { opacity: .4; }
+    }
+    @keyframes main-event-golden-delayed-opacity {
+        0%, 31.55035% { opacity: 0; }
+        39.55035% { opacity: .41; }
+        47.55035% { opacity: .75; }
+        55.55035% { opacity: .9; }
+        63.55035% { opacity: .97; }
+        71.55035%, 100% { opacity: 1; }
+    }
+    @keyframes main-event-golden-scale {
+        0% { transform: scale(0); }
+        12% { transform: scale(.59); }
+        24% { transform: scale(.89); }
+        36% { transform: scale(.97); }
+        48% { transform: scale(.992); }
+        60%, 100% { transform: scale(1); }
     }
     .public-site :where(a, summary) {
         transition: color 180ms ease, background-color 180ms ease,
