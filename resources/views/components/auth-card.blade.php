@@ -1,11 +1,20 @@
 @props(['title', 'description' => null])
 
-<section {{ $attributes->class(['w-full max-w-md border border-catalyst-grey/30 bg-white p-6 shadow-sm sm:p-8']) }}>
-    <a class="inline-flex items-center gap-3 font-display text-sm font-semibold tracking-wide" href="{{ route('home') }}">
-        <span class="grid size-10 place-items-center rounded-full bg-catalyst-primary font-sans font-bold text-white">C</span>
-        Catalyst 2026
+<section {{ $attributes->class(['w-full']) }}>
+    <a
+        class="inline-flex focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-catalyst-primary focus-visible:ring-offset-4"
+        href="{{ route('home') }}"
+        aria-label="Go back"
+        title="Back"
+        data-fallback-url="{{ route('home') }}"
+        onclick="event.preventDefault(); document.referrer && window.history.length > 1 ? window.history.back() : window.location.assign(this.dataset.fallbackUrl)"
+    >
+        <img class="h-12 w-[26px] object-contain" src="{{ asset('images/brand/catalyst-mark.png') }}" width="26" height="48" alt="">
     </a>
-    <h1 class="mt-8 font-display text-3xl font-semibold tracking-tight">{{ $title }}</h1>
-    @if ($description)<p class="mt-3 text-sm leading-6 text-catalyst-ink/70">{{ $description }}</p>@endif
+
+    <h1 class="mt-4 text-2xl font-semibold leading-8 tracking-tight text-zinc-900">{{ $title }}</h1>
+    @if ($description)
+        <p class="mt-3 max-w-sm text-sm leading-6 text-catalyst-muted">{{ $description }}</p>
+    @endif
     {{ $slot }}
 </section>
