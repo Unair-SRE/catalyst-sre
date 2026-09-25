@@ -5,6 +5,7 @@ use App\Actions\Summit\RejectSummitOrder;
 use App\Actions\Summit\SubmitSummitPaymentProof;
 use App\Actions\Summit\VerifySummitOrder;
 use App\Contracts\SummitPaymentStorage;
+use App\Contracts\SummitTicketStorage;
 use App\Enums\SummitOrderStatus;
 use App\Enums\SummitTicketStatus;
 use App\Enums\UserRole;
@@ -16,6 +17,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\ValidationException;
 use Tests\Fakes\FakeSummitPaymentStorage;
+use Tests\Fakes\FakeSummitTicketStorage;
 
 uses(RefreshDatabase::class);
 
@@ -23,6 +25,10 @@ beforeEach(function () {
     $storage = new FakeSummitPaymentStorage;
     $this->app->instance(SummitPaymentStorage::class, $storage);
     $this->paymentStorage = $storage;
+
+    $ticketStorage = new FakeSummitTicketStorage;
+    $this->app->instance(SummitTicketStorage::class, $ticketStorage);
+    $this->ticketStorage = $ticketStorage;
 
     PaymentSetting::query()->create([
         'contact_person_name' => 'Catalyst Contact',
@@ -132,6 +138,23 @@ test('a rejection closes the order and every ticket', function () {
 
     expect($result->payment_status)->toBe(SummitOrderStatus::Rejected)
         ->and($result->tickets->pluck('status')->unique()->all())->toBe([SummitTicketStatus::Rejected]);
+});
+
+test('an approval generates one private pdf per ticket', function () {
+    $buyer = User::factory()->create(['email_verified_at' => now()]);
+    $order = summitOrderFixture($buyer);
+    app(SubmitSummitPaymentProof::class)->handle(
+        $buyer, $order, 'Sender', UploadedFile::fake()->create('proof.jpg', 100, 'image/jpeg'),
+    );
+
+    $result = app(VerifySummitOrder::class)->handle(summitAdmin(), $order);
+
+    expect($this->ticketStorage->stored)->toHaveCount(2);
+
+    foreach ($result->tickets as $ticket) {
+        expect($ticket->pdf_url)->toContain('/catalyst/summit-tickets/')
+            ->and($ticket->pdf_file_id)->not->toBeEmpty();
+    }
 });
 
 test('a non-owner cannot submit proof for someone else order', function () {
