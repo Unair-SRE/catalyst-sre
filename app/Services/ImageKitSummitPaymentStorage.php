@@ -28,7 +28,9 @@ class ImageKitSummitPaymentStorage implements SummitPaymentStorage
                 'useUniqueFileName' => true,
             ]);
         } finally {
-            fclose($stream);
+            if (is_resource($stream)) {
+                fclose($stream);
+            }
         }
 
         $this->ensureSuccessful($response, 'upload');
