@@ -30,7 +30,7 @@ class AvailableTeamEmail implements ValidationRule
             ->exists();
 
         if ($usedByUser || $usedByMember) {
-            $fail('The :attribute has already been used by a user or team member.');
+            $fail('This email is already used by an account or team member.');
         }
     }
 }
