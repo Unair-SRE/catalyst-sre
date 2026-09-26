@@ -18,18 +18,131 @@
             <section class="grid border-y border-catalyst-grey/30 sm:grid-cols-3" aria-label="Team setup progress">
                 <div class="py-4 sm:pr-5">
                     <p class="text-xs font-medium uppercase tracking-wider text-catalyst-muted">01 · Team</p>
-                    <p class="mt-2 text-sm font-semibold">{{ $team ? 'Created' : 'Required' }}</p>
+                    <p class="mt-2 text-sm font-semibold">{{ $team ? 'Created' : 'Not created' }}</p>
                 </div>
                 <div class="border-t border-catalyst-grey/20 py-4 sm:border-l sm:border-t-0 sm:px-5">
                     <p class="text-xs font-medium uppercase tracking-wider text-catalyst-muted">02 · Captain KTM</p>
-                    <p class="mt-2 text-sm font-semibold">{{ $team?->captain->hasCompleteKtm() ? 'Ready' : 'Required' }}</p>
+                    <p class="mt-2 text-sm font-semibold">{{ ($team?->captain ?? auth()->user())->hasCompleteKtm() || $captainKtm ? 'Ready' : 'Required' }}</p>
                 </div>
                 <div class="border-t border-catalyst-grey/20 py-4 sm:border-l sm:border-t-0 sm:pl-5">
                     <p class="text-xs font-medium uppercase tracking-wider text-catalyst-muted">03 · Members</p>
-                    <p class="mt-2 text-sm font-semibold">{{ $team?->members->count() ?? 0 }} of 2 added</p>
+                    <p class="mt-2 text-sm font-semibold">{{ $team?->members->count() ?? count($setupMembers) }} of 2 added</p>
                 </div>
             </section>
 
+            @if (! $team)
+                <form class="border border-catalyst-grey/30 bg-white" wire:submit="createTeam">
+                    @error('setup')
+                        <p class="m-5 border border-status-error/30 bg-status-error/5 p-4 text-sm text-status-error-ink sm:m-6" role="alert">{{ $message }}</p>
+                    @enderror
+
+                    <section class="space-y-5 p-5 sm:p-6" aria-labelledby="new-team-details-heading">
+                        <div>
+                            <p class="text-xs font-medium uppercase tracking-wider text-catalyst-primary">01 · Team details</p>
+                            <h2 id="new-team-details-heading" class="mt-2 font-display text-xl font-semibold">Tell us about your team</h2>
+                            <p class="mt-2 text-sm leading-6 text-catalyst-ink/70">These details will be used for every competition registration.</p>
+                        </div>
+
+                        <div class="grid gap-5 sm:grid-cols-2">
+                            <label class="block text-sm font-medium" for="team-name">
+                                Team name
+                                <input id="team-name" class="mt-2 w-full border border-catalyst-grey/50 px-3 py-3" type="text" wire:model="teamForm.name" @error('teamForm.name') aria-invalid="true" aria-describedby="team-name-error" @enderror>
+                                @error('teamForm.name') <span id="team-name-error" class="mt-1 block text-sm text-status-error-ink">{{ $message }}</span> @enderror
+                            </label>
+                            <label class="block text-sm font-medium" for="team-institution">
+                                Institution
+                                <input id="team-institution" class="mt-2 w-full border border-catalyst-grey/50 px-3 py-3" type="text" wire:model="teamForm.institution" @error('teamForm.institution') aria-invalid="true" aria-describedby="team-institution-error" @enderror>
+                                @error('teamForm.institution') <span id="team-institution-error" class="mt-1 block text-sm text-status-error-ink">{{ $message }}</span> @enderror
+                            </label>
+                        </div>
+                    </section>
+
+                    <section class="space-y-5 border-t border-catalyst-grey/30 p-5 sm:p-6" aria-labelledby="new-captain-heading">
+                        <div>
+                            <p class="text-xs font-medium uppercase tracking-wider text-catalyst-primary">02 · Captain</p>
+                            <h2 id="new-captain-heading" class="mt-2 font-display text-xl font-semibold">Confirm the captain</h2>
+                            <p class="mt-2 text-sm text-catalyst-ink/70">{{ auth()->user()->name }} · {{ auth()->user()->email }}</p>
+                        </div>
+
+                        @if (auth()->user()->hasCompleteKtm())
+                            <div class="flex flex-col gap-3 border border-status-success/30 bg-status-success/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+                                <div>
+                                    <p class="text-sm font-semibold text-status-success-ink">Captain KTM is ready</p>
+                                    <p class="mt-1 text-xs text-catalyst-muted">The KTM already saved on your profile will be used.</p>
+                                </div>
+                                <a class="text-sm font-medium text-catalyst-primary underline underline-offset-4" href="{{ route('dashboard.private-files.captain-ktm', auth()->user()) }}" target="_blank" rel="noopener">View current KTM</a>
+                            </div>
+                        @endif
+
+                        <div>
+                            <label class="flex min-h-32 cursor-pointer flex-col items-center justify-center border border-dashed px-5 py-6 text-center transition-colors hover:border-catalyst-primary hover:bg-catalyst-surface/40 {{ $errors->has('captainKtm') ? 'border-status-error-ink bg-status-error/5' : 'border-catalyst-grey/60 bg-catalyst-neutral/60' }}" for="captain-ktm">
+                                <svg class="h-7 w-7 text-catalyst-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                                <span class="mt-3 text-sm font-semibold text-catalyst-ink">{{ auth()->user()->hasCompleteKtm() ? 'Choose a replacement KTM (optional)' : 'Choose the captain KTM' }}</span>
+                                <span class="mt-1 text-xs leading-5 text-catalyst-muted">JPG, JPEG, or PNG · maximum 2 MB</span>
+                                <input id="captain-ktm" class="sr-only" type="file" wire:model="captainKtm" accept=".jpg,.jpeg,.png,image/jpeg,image/png" @error('captainKtm') aria-invalid="true" aria-describedby="captain-ktm-error" @enderror>
+                            </label>
+                            <p class="mt-2 text-xs font-medium text-catalyst-primary" wire:loading wire:target="captainKtm" role="status">Checking the selected file…</p>
+                            @error('captainKtm') <p id="captain-ktm-error" class="mt-2 text-sm text-status-error-ink" role="alert">{{ $message }}</p> @enderror
+                        </div>
+
+                        @if ($captainKtm && ! $errors->has('captainKtm'))
+                            <div class="grid gap-4 border border-catalyst-grey/30 p-4 sm:grid-cols-[7rem_1fr] sm:items-center">
+                                <img class="h-28 w-full bg-catalyst-neutral object-contain" src="{{ $captainKtm->temporaryUrl() }}" alt="Selected captain KTM preview">
+                                <div class="min-w-0"><p class="truncate text-sm font-semibold">{{ $captainKtm->getClientOriginalName() }}</p><p class="mt-1 text-xs text-catalyst-muted">{{ number_format($captainKtm->getSize() / 1024) }} KB · ready to create</p></div>
+                            </div>
+                        @endif
+                    </section>
+
+                    <section class="space-y-5 border-t border-catalyst-grey/30 p-5 sm:p-6" aria-labelledby="new-members-heading">
+                        <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                            <div>
+                                <p class="text-xs font-medium uppercase tracking-wider text-catalyst-primary">03 · Members</p>
+                                <h2 id="new-members-heading" class="mt-2 font-display text-xl font-semibold">Add team members</h2>
+                                <p class="mt-2 text-sm leading-6 text-catalyst-ink/70">Optional. The captain already counts as the first participant.</p>
+                            </div>
+                            @if (count($setupMembers) < 2)
+                                <button class="shrink-0 border border-catalyst-primary px-4 py-3 text-sm font-medium text-catalyst-primary" type="button" wire:click="addSetupMember">+ Add member</button>
+                            @endif
+                        </div>
+
+                        @forelse ($setupMembers as $index => $setupMember)
+                            <article class="space-y-4 border border-catalyst-grey/30 p-4 sm:p-5" wire:key="setup-member-{{ $index }}">
+                                <div class="flex items-center justify-between gap-4">
+                                    <h3 class="font-display text-lg font-semibold">Member {{ $index + 1 }}</h3>
+                                    <button class="text-sm font-medium text-status-error-ink" type="button" wire:click="removeSetupMember({{ $index }})">Remove</button>
+                                </div>
+                                <div class="grid gap-4 sm:grid-cols-3">
+                                    <label class="text-sm" for="setup-member-name-{{ $index }}">Legal name<input id="setup-member-name-{{ $index }}" class="mt-2 w-full border border-catalyst-grey/50 px-3 py-3" wire:model="setupMembers.{{ $index }}.name">@error("setupMembers.$index.name") <span class="mt-1 block text-status-error-ink">{{ $message }}</span> @enderror</label>
+                                    <label class="text-sm" for="setup-member-email-{{ $index }}">Email<input id="setup-member-email-{{ $index }}" class="mt-2 w-full border border-catalyst-grey/50 px-3 py-3" type="email" wire:model="setupMembers.{{ $index }}.email">@error("setupMembers.$index.email") <span class="mt-1 block text-status-error-ink">{{ $message }}</span> @enderror</label>
+                                    <label class="text-sm" for="setup-member-whatsapp-{{ $index }}">WhatsApp<input id="setup-member-whatsapp-{{ $index }}" class="mt-2 w-full border border-catalyst-grey/50 px-3 py-3" wire:model="setupMembers.{{ $index }}.whatsapp">@error("setupMembers.$index.whatsapp") <span class="mt-1 block text-status-error-ink">{{ $message }}</span> @enderror</label>
+                                </div>
+                                <div>
+                                    <label class="flex cursor-pointer items-center gap-3 border border-dashed p-4 hover:border-catalyst-primary {{ $errors->has("setupMemberKtms.$index") ? 'border-status-error-ink bg-status-error/5' : 'border-catalyst-grey/60 bg-catalyst-neutral/60' }}" for="setup-member-ktm-{{ $index }}">
+                                        <svg class="h-6 w-6 shrink-0 text-catalyst-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M5 14v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4" stroke-linecap="round" stroke-linejoin="round" /></svg>
+                                        <span class="min-w-0"><span class="block text-sm font-semibold">Choose member KTM</span><span class="mt-1 block truncate text-xs text-catalyst-muted">{{ isset($setupMemberKtms[$index]) ? $setupMemberKtms[$index]->getClientOriginalName() : 'JPG, JPEG, or PNG · maximum 2 MB' }}</span></span>
+                                        <input id="setup-member-ktm-{{ $index }}" class="sr-only" type="file" wire:model="setupMemberKtms.{{ $index }}" accept=".jpg,.jpeg,.png,image/jpeg,image/png">
+                                    </label>
+                                    <p class="mt-2 text-xs font-medium text-catalyst-primary" wire:loading wire:target="setupMemberKtms.{{ $index }}" role="status">Checking the selected file…</p>
+                                    @error("setupMemberKtms.$index") <p class="mt-2 text-sm text-status-error-ink" role="alert">{{ $message }}</p> @enderror
+                                </div>
+                            </article>
+                        @empty
+                            <div class="border border-dashed border-catalyst-grey/50 bg-catalyst-neutral/40 p-5 text-center">
+                                <p class="text-sm font-medium">No additional members yet</p>
+                                <p class="mt-1 text-xs leading-5 text-catalyst-muted">You can create a captain-only team or add up to two members now.</p>
+                            </div>
+                        @endforelse
+                    </section>
+
+                    <footer class="flex flex-col gap-4 border-t border-catalyst-grey/30 bg-catalyst-neutral/50 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+                        <p class="text-sm text-catalyst-ink/70">One submit will save the team and all {{ count($setupMembers) + 1 }} participant{{ count($setupMembers) ? 's' : '' }} together.</p>
+                        <button class="bg-catalyst-primary px-5 py-3 text-sm font-medium text-white disabled:cursor-not-allowed disabled:opacity-45" type="submit" wire:loading.attr="disabled" wire:target="createTeam,captainKtm,setupMemberKtms">
+                            <span wire:loading.remove wire:target="createTeam">Create team</span>
+                            <span wire:loading wire:target="createTeam">Creating team…</span>
+                        </button>
+                    </footer>
+                </form>
+            @else
             <form class="space-y-5 border border-catalyst-grey/30 bg-white p-5 sm:p-6" wire:submit="saveTeam">
                 <div>
                     <p class="text-xs font-medium uppercase tracking-wider text-catalyst-primary">Step 1</p>
@@ -59,7 +172,6 @@
                 @endif
             </form>
 
-            @if ($team)
                 <section class="space-y-5 border border-catalyst-grey/30 bg-white p-5 sm:p-6">
                     <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                         <div>

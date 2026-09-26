@@ -2,7 +2,7 @@
 
 namespace App\Livewire\Dashboard;
 
-use App\Actions\Teams\CreateTeam;
+use App\Actions\Teams\CreateCompleteTeam;
 use App\Actions\Teams\CreateTeamMemberWithKtm;
 use App\Actions\Teams\DeleteTeamMemberWithKtm;
 use App\Actions\Teams\UpdateTeam;
@@ -30,6 +30,12 @@ class TeamManagement extends Component
     /** @var array<string, string> */
     public array $memberForm = ['name' => '', 'email' => '', 'whatsapp' => ''];
 
+    /** @var array<int, array<string, string>> */
+    public array $setupMembers = [];
+
+    /** @var array<int, TemporaryUploadedFile> */
+    public array $setupMemberKtms = [];
+
     /** @var array<string, string> */
     public array $editMemberForm = ['name' => '', 'email' => '', 'whatsapp' => ''];
 
@@ -48,7 +54,89 @@ class TeamManagement extends Component
         $this->fillTeamForm();
     }
 
-    public function saveTeam(CreateTeam $createTeam, UpdateTeam $updateTeam): void
+    public function createTeam(CreateCompleteTeam $createTeam): void
+    {
+        $this->feedback = null;
+
+        $rules = [
+            'teamForm.name' => ['required', 'string', 'max:120'],
+            'teamForm.institution' => ['required', 'string', 'max:160'],
+            'captainKtm' => $this->ktmRules(nullable: Auth::user()->hasCompleteKtm()),
+            'setupMembers' => ['array', 'max:2'],
+            'setupMembers.*.name' => ['required', 'string', 'max:120'],
+            'setupMembers.*.email' => ['required', 'email', 'max:255', 'distinct:ignore_case', new AvailableTeamEmail],
+            'setupMembers.*.whatsapp' => ['required', 'string', 'max:20'],
+        ];
+        $messages = [
+            ...$this->memberMessages('setupMembers.*'),
+            ...$this->ktmMessages('captainKtm'),
+        ];
+
+        foreach (array_keys($this->setupMembers) as $index) {
+            $rules["setupMemberKtms.$index"] = $this->ktmRules();
+            $messages = [
+                ...$messages,
+                ...$this->ktmMessages("setupMemberKtms.$index"),
+            ];
+        }
+
+        $this->validate($rules, $messages);
+
+        $members = array_map(
+            fn (array $member, int $index): array => [
+                ...$member,
+                'ktm' => $this->setupMemberKtms[$index],
+            ],
+            $this->setupMembers,
+            array_keys($this->setupMembers),
+        );
+
+        try {
+            $createTeam->handle(Auth::user(), $this->teamForm, $this->captainKtm, $members);
+        } catch (ValidationException $exception) {
+            $this->copySetupValidationErrors($exception);
+
+            return;
+        } catch (RuntimeException $exception) {
+            report($exception);
+            $this->addError('setup', $this->storageFailureMessage($exception));
+
+            return;
+        } catch (Throwable $exception) {
+            report($exception);
+            $this->addError('setup', 'The team could not be created. No team data was saved. Please try again.');
+
+            return;
+        }
+
+        $this->captainKtm = null;
+        $this->setupMembers = [];
+        $this->setupMemberKtms = [];
+        $this->fillTeamForm();
+        $this->feedback = 'Team created with all participant data.';
+    }
+
+    public function addSetupMember(): void
+    {
+        if (count($this->setupMembers) >= 2) {
+            return;
+        }
+
+        $this->setupMembers[] = ['name' => '', 'email' => '', 'whatsapp' => ''];
+    }
+
+    public function removeSetupMember(int $index): void
+    {
+        if (! array_key_exists($index, $this->setupMembers)) {
+            return;
+        }
+
+        array_splice($this->setupMembers, $index, 1);
+        array_splice($this->setupMemberKtms, $index, 1);
+        $this->resetValidation();
+    }
+
+    public function saveTeam(UpdateTeam $updateTeam): void
     {
         $this->feedback = null;
 
@@ -57,15 +145,9 @@ class TeamManagement extends Component
             'teamForm.institution' => ['required', 'string', 'max:160'],
         ]);
 
-        $team = $this->team();
-
-        if ($team) {
-            $updateTeam->handle(Auth::user(), $team, $this->teamForm);
-            $this->feedback = 'Team details updated.';
-        } else {
-            $createTeam->handle(Auth::user(), $this->teamForm);
-            $this->feedback = 'Team created. Upload the captain KTM and add members before registering.';
-        }
+        $team = $this->teamOrFail();
+        $updateTeam->handle(Auth::user(), $team, $this->teamForm);
+        $this->feedback = 'Team details updated.';
 
         $this->fillTeamForm();
     }
@@ -321,6 +403,25 @@ class TeamManagement extends Component
     {
         foreach ($exception->errors() as $field => $messages) {
             $target = $fieldMap[$field] ?? $field;
+
+            foreach ($messages as $message) {
+                $this->addError($target, $message);
+            }
+        }
+    }
+
+    private function copySetupValidationErrors(ValidationException $exception): void
+    {
+        foreach ($exception->errors() as $field => $messages) {
+            $target = match (true) {
+                $field === 'team' => 'setup',
+                $field === 'team.name' => 'teamForm.name',
+                $field === 'team.institution' => 'teamForm.institution',
+                $field === 'captain_ktm' => 'captainKtm',
+                preg_match('/^members\.(\d+)\.ktm$/', $field, $matches) === 1 => 'setupMemberKtms.'.$matches[1],
+                str_starts_with($field, 'members.') => 'setupMembers.'.substr($field, strlen('members.')),
+                default => $field,
+            };
 
             foreach ($messages as $message) {
                 $this->addError($target, $message);
