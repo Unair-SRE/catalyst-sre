@@ -51,3 +51,41 @@ No actionable P0/P1/P2 mismatch remains after the revisions below.
 ## Final Result
 
 final result: passed
+
+---
+
+# Pre-Event 1 Design QA
+
+## References
+
+- Source screenshot: `C:\Users\sutha\AppData\Local\Temp\codex-clipboard-3af6dab7-b8a1-4871-b2e4-8585473ef5ce.png`
+- Figma-to-code reference: `C:\Users\sutha\.codex\attachments\7ddde41e-f1e0-4765-a4be-acd6f6a4efcb\Pasted text.txt`
+- Rendered desktop screenshot: `D:\catalyst\catalyst-sre\tmp\pre-event-1-desktop.png`
+- Rendered mobile screenshots: `D:\catalyst\catalyst-sre\tmp\pre-event-1-mobile-cdp.png`, `D:\catalyst\catalyst-sre\tmp\pre-event-1-mobile-360-cdp.png`
+
+## Viewports checked
+
+- 1440 × 900 desktop
+- 640 px in-app browser review across hero, theme, CTA, and footer
+- 390 × 844 exact DevTools device emulation
+- 360 × 800 exact DevTools device emulation
+
+## Findings and fixes
+
+- Reused the approved public hero, typography, section-label, CTA, timeline-state, people-card, navbar-theme, and reveal contracts.
+- Verified adaptive navbar contrast over the dark hero and light content surfaces.
+- Verified mobile menu presentation and active Pre-Event 1 route state.
+- Verified `bodyScrollWidth` equals the viewport width at both 390 px and 360 px; no horizontal page overflow remains.
+- Verified the hero headline wraps cleanly at 360 px and the CTA structure remains touch-friendly.
+- Reused the Main Event hero cue, homepage marquee loop, and animated final-card treatment for the requested PE1 revisions.
+- Verified the Event Theme copy and Registration column remain left-aligned while their right edges stay within the shared container margin.
+- Reused the available Catalyst solar photography as temporary full-bleed highlight imagery instead of fabricating event documentation.
+- Verified the revised eight-section page at desktop and mobile widths, including eight people cards, one looping highlights track, and one merged final CTA card.
+
+## Intentional placeholders
+
+- Approved Mentorship Track hero/highlight photography
+- Official mentor and judge identities/portraits
+- Final public Mentorship Track guidebook URL
+
+final result: passed
