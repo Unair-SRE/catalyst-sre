@@ -7,6 +7,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.3",
+        "barryvdh/laravel-dompdf": "^3.1",
         "filament/filament": "*",
         "imagekit/imagekit": "4.0",
         "laravel/fortify": "*",

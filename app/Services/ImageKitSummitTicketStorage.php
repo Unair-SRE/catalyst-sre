@@ -2,36 +2,22 @@
 
 namespace App\Services;
 
-use App\Contracts\SummitPaymentStorage;
+use App\Contracts\SummitTicketStorage;
 use App\Support\Files\StoredPrivateFile;
-use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Str;
 use ImageKit\ImageKit;
 use RuntimeException;
 
-class ImageKitSummitPaymentStorage implements SummitPaymentStorage
+class ImageKitSummitTicketStorage implements SummitTicketStorage
 {
-    public function upload(UploadedFile $file): StoredPrivateFile
+    public function store(string $fileName, string $contents): StoredPrivateFile
     {
-        $stream = fopen($file->getRealPath(), 'r');
-
-        if ($stream === false) {
-            throw new RuntimeException('The uploaded file could not be read.');
-        }
-
-        try {
-            $response = $this->client()->uploadFile([
-                'file' => $stream,
-                'fileName' => Str::uuid().'.'.$file->guessExtension(),
-                'folder' => '/catalyst/summit-payments',
-                'isPrivateFile' => true,
-                'useUniqueFileName' => true,
-            ]);
-        } finally {
-            if (is_resource($stream)) {
-                fclose($stream);
-            }
-        }
+        $response = $this->client()->uploadFile([
+            'file' => base64_encode($contents),
+            'fileName' => $fileName,
+            'folder' => '/catalyst/summit-tickets',
+            'isPrivateFile' => true,
+            'useUniqueFileName' => true,
+        ]);
 
         $this->ensureSuccessful($response, 'upload');
 

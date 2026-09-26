@@ -1,6 +1,5 @@
 @php
     $navigation = [
-        ['label' => 'Competitions', 'route' => 'competitions.index', 'active' => 'competitions.*'],
         ['label' => 'Pre-Event 1', 'route' => 'pre-event-1.index', 'active' => 'pre-event-1.*'],
         ['label' => 'Pre-Event 2', 'route' => 'pre-event-2.index', 'active' => 'pre-event-2.*'],
         ['label' => 'Main Event', 'route' => 'main-event.index', 'active' => 'main-event.*'],
