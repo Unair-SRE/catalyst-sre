@@ -56,29 +56,100 @@ test('participant can manage real team data and member KTM from the dashboard', 
         ->test(TeamManagement::class)
         ->set('teamForm.name', 'Database Team')
         ->set('teamForm.institution', 'Universitas Airlangga')
-        ->call('saveTeam')
+        ->set('captainKtm', UploadedFile::fake()->create('captain.jpg', 100, 'image/jpeg'))
+        ->call('addSetupMember')
+        ->set('setupMembers.0.name', 'Bima Santoso')
+        ->set('setupMembers.0.email', 'bima@example.test')
+        ->set('setupMembers.0.whatsapp', '081300000000')
+        ->set('setupMemberKtms.0', UploadedFile::fake()->create('bima.png', 100, 'image/png'))
+        ->call('createTeam')
         ->assertHasNoErrors()
-        ->assertSee('Team created');
+        ->assertSee('Team created with all participant data.')
+        ->assertSee('Bima Santoso');
 
     $team = $captain->fresh()->captainedTeam;
 
     expect($team)->not->toBeNull()
-        ->and($team->name)->toBe('Database Team');
+        ->and($team->name)->toBe('Database Team')
+        ->and($team->members)->toHaveCount(1)
+        ->and($this->ktmStorage->uploaded)->toHaveCount(2)
+        ->and($captain->refresh()->ktm_file_id)->toStartWith('ktm-fake-')
+        ->and($team->members()->first()->ktm_file_id)->toStartWith('ktm-fake-')
+        ->and($team->fresh()->hasCompleteKtm())->toBeTrue();
+});
 
-    $component
+test('initial team setup validates every participant before uploading files', function () {
+    $captain = User::factory()->create();
+
+    Livewire::actingAs($captain)
+        ->test(TeamManagement::class)
+        ->set('teamForm.name', 'Atomic Team')
+        ->set('teamForm.institution', 'Universitas Airlangga')
         ->set('captainKtm', UploadedFile::fake()->create('captain.jpg', 100, 'image/jpeg'))
-        ->call('uploadCaptainKtm')
-        ->assertHasNoErrors()
-        ->set('memberForm.name', 'Bima Santoso')
-        ->set('memberForm.email', 'bima@example.test')
-        ->set('memberForm.whatsapp', '081300000000')
-        ->set('memberKtm', UploadedFile::fake()->create('bima.png', 100, 'image/png'))
-        ->call('addMember')
-        ->assertHasNoErrors()
-        ->assertSee('Bima Santoso');
+        ->call('addSetupMember')
+        ->set('setupMembers.0.name', 'Incomplete Member')
+        ->set('setupMembers.0.email', 'member@example.test')
+        ->call('createTeam')
+        ->assertHasErrors(['setupMembers.0.whatsapp', 'setupMemberKtms.0']);
 
-    expect($team->fresh()->hasCompleteKtm())->toBeTrue()
-        ->and($team->members()->first()->ktm_file_id)->toStartWith('ktm-fake-');
+    expect($this->ktmStorage->uploaded)->toBeEmpty();
+    $this->assertDatabaseCount('teams', 0);
+    $this->assertDatabaseCount('team_members', 0);
+});
+
+test('initial team setup reuses an existing captain KTM', function () {
+    $captain = User::factory()->create([
+        'ktm_url' => 'https://ik.imagekit.io/catalyst/ktm/existing.jpg',
+        'ktm_file_id' => 'existing-captain-ktm',
+    ]);
+
+    Livewire::actingAs($captain)
+        ->test(TeamManagement::class)
+        ->set('teamForm.name', 'Captain Only')
+        ->set('teamForm.institution', 'Universitas Airlangga')
+        ->call('createTeam')
+        ->assertHasNoErrors();
+
+    expect($captain->fresh()->captainedTeam)->not->toBeNull()
+        ->and($this->ktmStorage->uploaded)->toBeEmpty()
+        ->and($this->ktmStorage->deleted)->toBeEmpty();
+});
+
+test('initial team setup cleans uploaded files when a later upload fails', function () {
+    $this->app->instance(KtmStorage::class, new class extends FakeKtmStorage
+    {
+        public function upload(UploadedFile $file): StoredPrivateFile
+        {
+            if (count($this->uploaded) === 1) {
+                throw new RuntimeException('Simulated member upload failure.');
+            }
+
+            return parent::upload($file);
+        }
+    });
+
+    $captain = User::factory()->create();
+
+    Livewire::actingAs($captain)
+        ->test(TeamManagement::class)
+        ->set('teamForm.name', 'Rollback Team')
+        ->set('teamForm.institution', 'Universitas Airlangga')
+        ->set('captainKtm', UploadedFile::fake()->create('captain.jpg', 100, 'image/jpeg'))
+        ->call('addSetupMember')
+        ->set('setupMembers.0.name', 'Bima Santoso')
+        ->set('setupMembers.0.email', 'bima@example.test')
+        ->set('setupMembers.0.whatsapp', '081300000000')
+        ->set('setupMemberKtms.0', UploadedFile::fake()->create('bima.png', 100, 'image/png'))
+        ->call('createTeam')
+        ->assertHasErrors('setup');
+
+    /** @var FakeKtmStorage $storage */
+    $storage = app(KtmStorage::class);
+
+    expect($storage->uploaded)->toHaveCount(1)
+        ->and($storage->deleted)->toContain($storage->uploaded[0]);
+    $this->assertDatabaseCount('teams', 0);
+    $this->assertDatabaseCount('team_members', 0);
 });
 
 test('team management explains the two megabyte KTM limit', function () {
