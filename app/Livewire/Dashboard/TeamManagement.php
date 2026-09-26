@@ -2,48 +2,28 @@
 
 namespace App\Livewire\Dashboard;
 
-use App\Actions\Teams\CreateCompleteTeam;
-use App\Actions\Teams\CreateTeamMemberWithKtm;
-use App\Actions\Teams\DeleteTeamMemberWithKtm;
+use App\Actions\Teams\CreateDriveTeam;
+use App\Actions\Teams\RemoveTeamMember;
+use App\Actions\Teams\SaveDriveTeamMember;
+use App\Actions\Teams\UpdateDriveFolder;
 use App\Actions\Teams\UpdateTeam;
-use App\Actions\Teams\UpdateTeamMemberWithKtm;
-use App\Actions\Teams\UploadCaptainKtm;
 use App\Models\Team;
-use App\Models\TeamMember;
-use App\Rules\AvailableTeamEmail;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Livewire\Component;
-use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
-use Livewire\WithFileUploads;
-use RuntimeException;
-use Throwable;
 
 class TeamManagement extends Component
 {
-    use WithFileUploads;
-
-    /** @var array<string, string> */
     public array $teamForm = ['name' => '', 'institution' => ''];
 
-    /** @var array<string, string> */
-    public array $memberForm = ['name' => '', 'email' => '', 'whatsapp' => ''];
+    public string $documentsDriveUrl = '';
 
-    /** @var array<int, array<string, string>> */
     public array $setupMembers = [];
 
-    /** @var array<int, TemporaryUploadedFile> */
-    public array $setupMemberKtms = [];
+    public array $memberForm = ['name' => '', 'email' => '', 'whatsapp' => ''];
 
-    /** @var array<string, string> */
     public array $editMemberForm = ['name' => '', 'email' => '', 'whatsapp' => ''];
-
-    public ?TemporaryUploadedFile $captainKtm = null;
-
-    public ?TemporaryUploadedFile $memberKtm = null;
-
-    public ?TemporaryUploadedFile $editMemberKtm = null;
 
     public ?int $editingMemberId = null;
 
@@ -51,292 +31,124 @@ class TeamManagement extends Component
 
     public function mount(): void
     {
-        $this->fillTeamForm();
+        if ($team = $this->team()) {
+            $this->teamForm = $team->only(['name', 'institution']);
+            $this->documentsDriveUrl = $team->documents_drive_url ?? '';
+        }
     }
 
-    public function createTeam(CreateCompleteTeam $createTeam): void
+    public function createTeam(CreateDriveTeam $action): void
     {
-        $this->feedback = null;
-
-        $rules = [
-            'teamForm.name' => ['required', 'string', 'max:120'],
-            'teamForm.institution' => ['required', 'string', 'max:160'],
-            'captainKtm' => $this->ktmRules(nullable: Auth::user()->hasCompleteKtm()),
-            'setupMembers' => ['array', 'max:2'],
-            'setupMembers.*.name' => ['required', 'string', 'max:120'],
-            'setupMembers.*.email' => ['required', 'email', 'max:255', 'distinct:ignore_case', new AvailableTeamEmail],
-            'setupMembers.*.whatsapp' => ['required', 'string', 'max:20'],
-        ];
-        $messages = [
-            ...$this->memberMessages('setupMembers.*'),
-            ...$this->ktmMessages('captainKtm'),
-        ];
-
-        foreach (array_keys($this->setupMembers) as $index) {
-            $rules["setupMemberKtms.$index"] = $this->ktmRules();
-            $messages = [
-                ...$messages,
-                ...$this->ktmMessages("setupMemberKtms.$index"),
-            ];
-        }
-
-        $this->validate($rules, $messages);
-
-        $members = array_map(
-            fn (array $member, int $index): array => [
-                ...$member,
-                'ktm' => $this->setupMemberKtms[$index],
-            ],
-            $this->setupMembers,
-            array_keys($this->setupMembers),
-        );
-
         try {
-            $createTeam->handle(Auth::user(), $this->teamForm, $this->captainKtm, $members);
+            $action->handle(Auth::user(), [...$this->teamForm, 'documents_drive_url' => trim($this->documentsDriveUrl)], $this->setupMembers);
         } catch (ValidationException $exception) {
-            $this->copySetupValidationErrors($exception);
-
-            return;
-        } catch (RuntimeException $exception) {
-            report($exception);
-            $this->addError('setup', $this->storageFailureMessage($exception));
-
-            return;
-        } catch (Throwable $exception) {
-            report($exception);
-            $this->addError('setup', 'The team could not be created. No team data was saved. Please try again.');
+            $this->copyErrors($exception);
 
             return;
         }
-
-        $this->captainKtm = null;
         $this->setupMembers = [];
-        $this->setupMemberKtms = [];
-        $this->fillTeamForm();
-        $this->feedback = 'Team created with all participant data.';
+        $this->resetValidation();
+        $this->feedback = 'Team created. Your folder will be checked by the committee.';
     }
 
     public function addSetupMember(): void
     {
-        if (count($this->setupMembers) >= 2) {
-            return;
+        if (count($this->setupMembers) < 2) {
+            $this->setupMembers[] = ['name' => '', 'email' => '', 'whatsapp' => ''];
         }
-
-        $this->setupMembers[] = ['name' => '', 'email' => '', 'whatsapp' => ''];
     }
 
     public function removeSetupMember(int $index): void
     {
-        if (! array_key_exists($index, $this->setupMembers)) {
-            return;
+        if (array_key_exists($index, $this->setupMembers)) {
+            array_splice($this->setupMembers, $index, 1);
+            $this->resetValidation();
         }
-
-        array_splice($this->setupMembers, $index, 1);
-        array_splice($this->setupMemberKtms, $index, 1);
-        $this->resetValidation();
     }
 
-    public function saveTeam(UpdateTeam $updateTeam): void
+    public function saveTeam(UpdateTeam $action): void
     {
-        $this->feedback = null;
-
         $this->validate([
             'teamForm.name' => ['required', 'string', 'max:120'],
             'teamForm.institution' => ['required', 'string', 'max:160'],
         ]);
-
-        $team = $this->teamOrFail();
-        $updateTeam->handle(Auth::user(), $team, $this->teamForm);
+        $action->handle(Auth::user(), $this->teamOrFail(), $this->teamForm);
         $this->feedback = 'Team details updated.';
-
-        $this->fillTeamForm();
     }
 
-    public function uploadCaptainKtm(UploadCaptainKtm $uploadCaptainKtm): void
+    public function saveFolder(UpdateDriveFolder $action): void
     {
-        $this->feedback = null;
-
-        $this->validate([
-            'captainKtm' => $this->ktmRules(),
-        ], $this->ktmMessages('captainKtm'));
-
-        $team = $this->teamOrFail();
-
         try {
-            $uploadCaptainKtm->handle(Auth::user(), $team, $this->captainKtm);
+            $action->handle(Auth::user(), $this->teamOrFail(), trim($this->documentsDriveUrl));
         } catch (ValidationException $exception) {
-            $this->copyValidationErrors($exception, ['ktm' => 'captainKtm']);
-
-            return;
-        } catch (RuntimeException $exception) {
-            report($exception);
-            $this->addError('captainKtm', $this->storageFailureMessage($exception));
-
-            return;
-        } catch (Throwable $exception) {
-            report($exception);
-            $this->addError('captainKtm', 'The KTM upload could not be completed. No data was changed. Please try again.');
+            foreach ($exception->errors() as $messages) {
+                $this->addError('documentsDriveUrl', $messages[0]);
+            }
 
             return;
         }
-
-        $this->captainKtm = null;
-        $this->feedback = 'Captain KTM uploaded.';
+        $this->resetValidation();
+        $this->feedback = 'Team folder saved. Sharing permissions and documents will be checked by the committee.';
     }
 
-    public function addMember(CreateTeamMemberWithKtm $createMember): void
+    public function addMember(SaveDriveTeamMember $action): void
     {
-        $this->feedback = null;
-
-        $this->validate([
-            'memberForm.name' => ['required', 'string', 'max:120'],
-            'memberForm.email' => ['required', 'email', 'max:255', new AvailableTeamEmail],
-            'memberForm.whatsapp' => ['required', 'string', 'max:20'],
-            'memberKtm' => $this->ktmRules(),
-        ], [
-            ...$this->memberMessages('memberForm'),
-            ...$this->ktmMessages('memberKtm'),
-        ]);
-
         try {
-            $createMember->handle(Auth::user(), $this->teamOrFail(), $this->memberForm, $this->memberKtm);
+            $action->handle(Auth::user(), $this->teamOrFail(), $this->memberForm);
         } catch (ValidationException $exception) {
-            $this->copyValidationErrors($exception, [
-                'name' => 'memberForm.name',
-                'email' => 'memberForm.email',
-                'whatsapp' => 'memberForm.whatsapp',
-                'ktm' => 'memberKtm',
-                'team' => 'memberForm',
-                'members' => 'memberForm',
-            ]);
-
-            return;
-        } catch (RuntimeException $exception) {
-            report($exception);
-            $this->addError('memberKtm', $this->storageFailureMessage($exception));
-
-            return;
-        } catch (Throwable $exception) {
-            report($exception);
-            $this->addError('memberForm', 'The member could not be saved. No team data was changed. Please try again.');
+            foreach ($exception->errors() as $field => $messages) {
+                $this->addError('memberForm.'.$field, $messages[0]);
+            }
 
             return;
         }
-
-        $this->resetMemberForm();
-        $this->feedback = 'Team member added.';
+        $this->memberForm = ['name' => '', 'email' => '', 'whatsapp' => ''];
+        $this->resetValidation();
+        $this->feedback = 'Member added. Remember to add their KTM to the team folder.';
     }
 
     public function startEditingMember(int $memberId): void
     {
-        $member = $this->ownedMember($memberId);
-
+        $team = $this->teamOrFail();
+        $this->authorize('manageMembers', $team);
+        $member = $team->members()->findOrFail($memberId);
         $this->editingMemberId = $member->id;
         $this->editMemberForm = $member->only(['name', 'email', 'whatsapp']);
-        $this->editMemberKtm = null;
-        $this->resetValidation();
     }
 
     public function cancelEditingMember(): void
     {
         $this->editingMemberId = null;
-        $this->editMemberKtm = null;
         $this->editMemberForm = ['name' => '', 'email' => '', 'whatsapp' => ''];
         $this->resetValidation();
     }
 
-    public function updateMember(UpdateTeamMemberWithKtm $updateMember): void
+    public function updateMember(SaveDriveTeamMember $action): void
     {
-        $this->feedback = null;
-        $member = $this->ownedMember($this->editingMemberId);
-
-        $this->validate([
-            'editMemberForm.name' => ['required', 'string', 'max:120'],
-            'editMemberForm.email' => ['required', 'email', 'max:255', new AvailableTeamEmail($member->id)],
-            'editMemberForm.whatsapp' => ['required', 'string', 'max:20'],
-            'editMemberKtm' => $this->ktmRules(nullable: true),
-        ], [
-            ...$this->memberMessages('editMemberForm'),
-            ...$this->ktmMessages('editMemberKtm'),
-        ]);
-
+        abort_if($this->editingMemberId === null, 404);
         try {
-            $updateMember->handle(Auth::user(), $member, $this->editMemberForm, $this->editMemberKtm);
+            $action->handle(Auth::user(), $this->teamOrFail(), $this->editMemberForm, $this->editingMemberId);
         } catch (ValidationException $exception) {
-            $this->copyValidationErrors($exception, [
-                'name' => 'editMemberForm.name',
-                'email' => 'editMemberForm.email',
-                'whatsapp' => 'editMemberForm.whatsapp',
-                'ktm' => 'editMemberKtm',
-                'team' => 'editMemberForm',
-                'members' => 'editMemberForm',
-            ]);
-
-            return;
-        } catch (RuntimeException $exception) {
-            report($exception);
-            $this->addError('editMemberKtm', $this->storageFailureMessage($exception));
-
-            return;
-        } catch (Throwable $exception) {
-            report($exception);
-            $this->addError('editMemberForm', 'The member could not be updated. No team data was changed. Please try again.');
+            foreach ($exception->errors() as $field => $messages) {
+                $this->addError('editMemberForm.'.$field, $messages[0]);
+            }
 
             return;
         }
-
         $this->cancelEditingMember();
-        $this->feedback = 'Team member updated.';
+        $this->feedback = 'Member updated.';
     }
 
-    public function removeMember(int $memberId, DeleteTeamMemberWithKtm $deleteMember): void
+    public function removeMember(int $memberId, RemoveTeamMember $action): void
     {
-        $deleteMember->handle(Auth::user(), $this->ownedMember($memberId));
+        $action->handle(Auth::user(), $this->teamOrFail()->members()->findOrFail($memberId));
         $this->cancelEditingMember();
-        $this->feedback = 'Team member removed.';
-    }
-
-    public function updatedCaptainKtm(): void
-    {
-        $this->feedback = null;
-
-        $this->validateOnly('captainKtm', [
-            'captainKtm' => $this->ktmRules(),
-        ], $this->ktmMessages('captainKtm'));
-    }
-
-    public function updatedMemberKtm(): void
-    {
-        $this->feedback = null;
-
-        $this->validateOnly('memberKtm', [
-            'memberKtm' => $this->ktmRules(),
-        ], $this->ktmMessages('memberKtm'));
-    }
-
-    public function updatedEditMemberKtm(): void
-    {
-        $this->feedback = null;
-
-        $this->validateOnly('editMemberKtm', [
-            'editMemberKtm' => $this->ktmRules(nullable: true),
-        ], $this->ktmMessages('editMemberKtm'));
+        $this->feedback = 'Member removed. Update the contents of your team folder if necessary.';
     }
 
     public function render(): View
     {
-        return view('livewire.dashboard.team-management', [
-            'team' => $this->team()?->load(['captain', 'members']),
-        ]);
-    }
-
-    private function fillTeamForm(): void
-    {
-        $team = $this->team();
-
-        if ($team) {
-            $this->teamForm = $team->only(['name', 'institution']);
-        }
+        return view('livewire.dashboard.team-management', ['team' => $this->team()?->load(['captain', 'members'])]);
     }
 
     private function team(): ?Team
@@ -349,92 +161,16 @@ class TeamManagement extends Component
         return Auth::user()->captainedTeam()->firstOrFail();
     }
 
-    private function ownedMember(?int $memberId): TeamMember
-    {
-        abort_if($memberId === null, 404);
-
-        return $this->teamOrFail()->members()->findOrFail($memberId);
-    }
-
-    private function resetMemberForm(): void
-    {
-        $this->memberForm = ['name' => '', 'email' => '', 'whatsapp' => ''];
-        $this->memberKtm = null;
-        $this->resetValidation();
-    }
-
-    /** @return array<int, string> */
-    private function ktmRules(bool $nullable = false): array
-    {
-        return [
-            $nullable ? 'nullable' : 'required',
-            'file',
-            'mimes:jpg,jpeg,png',
-            'mimetypes:image/jpeg,image/png',
-            'max:2048',
-        ];
-    }
-
-    /** @return array<string, string> */
-    private function ktmMessages(string $field): array
-    {
-        return [
-            $field.'.required' => 'Select a KTM image before continuing.',
-            $field.'.file' => 'The selected KTM must be a valid file.',
-            $field.'.mimes' => 'The KTM must be a JPG, JPEG, or PNG image.',
-            $field.'.mimetypes' => 'The KTM must be a JPG, JPEG, or PNG image.',
-            $field.'.max' => 'The KTM must not exceed 2 MB.',
-        ];
-    }
-
-    /** @return array<string, string> */
-    private function memberMessages(string $form): array
-    {
-        return [
-            $form.'.name.required' => 'Enter the member legal name.',
-            $form.'.email.required' => 'Enter the member email address.',
-            $form.'.email.email' => 'Enter a valid member email address.',
-            $form.'.whatsapp.required' => 'Enter the member WhatsApp number.',
-        ];
-    }
-
-    /** @param array<string, string> $fieldMap */
-    private function copyValidationErrors(ValidationException $exception, array $fieldMap): void
+    private function copyErrors(ValidationException $exception): void
     {
         foreach ($exception->errors() as $field => $messages) {
-            $target = $fieldMap[$field] ?? $field;
-
-            foreach ($messages as $message) {
-                $this->addError($target, $message);
-            }
-        }
-    }
-
-    private function copySetupValidationErrors(ValidationException $exception): void
-    {
-        foreach ($exception->errors() as $field => $messages) {
-            $target = match (true) {
-                $field === 'team' => 'setup',
-                $field === 'team.name' => 'teamForm.name',
-                $field === 'team.institution' => 'teamForm.institution',
-                $field === 'captain_ktm' => 'captainKtm',
-                preg_match('/^members\.(\d+)\.ktm$/', $field, $matches) === 1 => 'setupMemberKtms.'.$matches[1],
-                str_starts_with($field, 'members.') => 'setupMembers.'.substr($field, strlen('members.')),
-                default => $field,
+            $key = match (true) {
+                $field === 'team.documents_drive_url' => 'documentsDriveUrl',
+                str_starts_with($field, 'team.') => 'teamForm.'.substr($field, 5),
+                str_starts_with($field, 'members.') => 'setupMembers.'.substr($field, 8),
+                default => 'setup',
             };
-
-            foreach ($messages as $message) {
-                $this->addError($target, $message);
-            }
+            $this->addError($key, $messages[0]);
         }
-    }
-
-    private function storageFailureMessage(RuntimeException $exception): string
-    {
-        if (str_contains($exception->getMessage(), 'is not configured')) {
-            return 'KTM storage is not configured. Contact the Catalyst administrator before trying again.';
-        }
-
-        return 'The KTM upload could not be completed. No data was saved. Please try again.';
     }
 }

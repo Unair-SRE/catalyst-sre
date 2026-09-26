@@ -5,6 +5,7 @@ use App\Actions\Summit\CreateSummitOrder;
 use App\Actions\Summit\SubmitSummitPaymentProof;
 use App\Actions\Summit\VerifySummitOrder;
 use App\Contracts\SummitPaymentStorage;
+use App\Contracts\SummitTicketStorage;
 use App\Enums\SummitTicketStatus;
 use App\Enums\UserRole;
 use App\Models\PaymentSetting;
@@ -15,11 +16,13 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\ValidationException;
 use Tests\Fakes\FakeSummitPaymentStorage;
+use Tests\Fakes\FakeSummitTicketStorage;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
     $this->app->instance(SummitPaymentStorage::class, new FakeSummitPaymentStorage);
+    $this->app->instance(SummitTicketStorage::class, new FakeSummitTicketStorage);
 
     PaymentSetting::query()->create([
         'contact_person_name' => 'Catalyst Contact',

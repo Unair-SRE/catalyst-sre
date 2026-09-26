@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Rules\GoogleDriveFolder;
 use Database\Factories\TeamFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['captain_id', 'name', 'institution', 'locked_at'])]
+#[Fillable(['captain_id', 'name', 'institution', 'documents_drive_url', 'locked_at'])]
 class Team extends Model
 {
     /** @use HasFactory<TeamFactory> */
@@ -52,6 +53,11 @@ class Team extends Model
     public function peopleCount(): int
     {
         return 1 + $this->members()->count();
+    }
+
+    public function hasDocumentsFolder(): bool
+    {
+        return GoogleDriveFolder::valid($this->documents_drive_url);
     }
 
     public function hasCompleteKtm(): bool

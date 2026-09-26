@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\Auth\EmailVerificationOtpController;
 use App\Http\Controllers\CaptainKtmController;
 use App\Http\Controllers\CompetitionPaymentProofController;
+use App\Http\Controllers\TeamDocumentsController;
 use App\Http\Controllers\TeamMemberKtmController;
 use App\Models\Competition;
 use Illuminate\Support\Facades\Route;
@@ -51,6 +52,8 @@ Route::middleware(['auth', 'verified'])->prefix('dashboard')->name('dashboard.')
     Route::get('/registration', function () {
         return view('dashboard.registration.index');
     })->name('registration.index');
+
+    Route::get('/team/{team}/documents', TeamDocumentsController::class)->name('team.documents');
 
     Route::get('/team', function () {
         return view('dashboard.team');

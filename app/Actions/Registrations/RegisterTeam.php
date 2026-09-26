@@ -57,9 +57,9 @@ class RegisterTeam
             ]);
         }
 
-        if (! $team->hasCompleteKtm()) {
+        if (! $team->hasDocumentsFolder()) {
             throw ValidationException::withMessages([
-                'team' => 'The captain and every team member must have a KTM before registration.',
+                'team' => 'Add a Google Drive folder containing the captain and every member KTM before registration.',
             ]);
         }
 

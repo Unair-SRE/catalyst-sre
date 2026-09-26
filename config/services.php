@@ -36,6 +36,7 @@ return [
     ],
 
     'catalyst' => [
+        'documents_reviewer_email' => env('CATALYST_DOCUMENTS_REVIEWER_EMAIL', 'unair@sre.co.id'),
         'guidebook_url' => env('CATALYST_GUIDEBOOK_URL'),
         'qris_asset' => 'images/payment/qris-catalyst.png',
     ],

@@ -245,11 +245,11 @@ test('admin can access competition payments resource but participants cannot', f
     $this->actingAs($admin)
         ->get(PaymentResource::getUrl('index'))
         ->assertOk()
-        ->assertSee(route('dashboard.competition-payment.proof', $payment));
+        ->assertSee('Review documents');
     $this->actingAs(User::factory()->create())->get(PaymentResource::getUrl('index'))->assertForbidden();
 });
 
-test('payment details render the proof preview and business metadata', function () {
+test('payment details render the team review instructions and business metadata', function () {
     [, , $payment] = competitionPaymentFixture();
     $payment->update([
         'sender_name' => 'Preview Sender',
@@ -263,8 +263,8 @@ test('payment details render the proof preview and business metadata', function 
         'proofUrl' => route('dashboard.competition-payment.proof', $payment),
     ])
         ->assertSee('Preview Sender')
-        ->assertSee('preview-proof')
-        ->assertSee(route('dashboard.competition-payment.proof', $payment));
+        ->assertSee('Check KTM files')
+        ->assertSee('No team folder');
 });
 
 test('payment settings displays the static qris without an editable qris url', function () {
@@ -283,7 +283,7 @@ test('payment settings displays the static qris without an editable qris url', f
 });
 
 test('the participant payment page displays active qris and submits the proof', function () {
-    $team = Team::factory()->create();
+    $team = Team::factory()->create(['documents_drive_url' => 'https://drive.google.com/drive/folders/team']);
     $competition = Competition::factory()->code(CompetitionCode::MiniCase)->create();
     $registration = Registration::factory()->for($team)->for($competition)->create();
     $payment = $registration->payment()->create();
@@ -303,10 +303,10 @@ test('the participant payment page displays active qris and submits the proof', 
     Livewire::actingAs($team->captain)
         ->test(CompetitionPaymentForm::class, ['competition' => 'mcc'])
         ->set('senderName', 'Captain Sender')
-        ->set('proof', UploadedFile::fake()->create('proof.png', 100, 'image/png'))
+        ->set('documentsConfirmed', true)
         ->call('submit')
         ->assertHasNoErrors()
-        ->assertSee('Payment proof submitted');
+        ->assertSee('Documents submitted');
 
     expect($payment->fresh()->status)->toBe(PaymentStatus::WaitingVerification)
         ->and($team->fresh()->isLocked())->toBeTrue();

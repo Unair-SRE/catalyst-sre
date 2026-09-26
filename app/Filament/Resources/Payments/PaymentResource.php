@@ -3,25 +3,20 @@
 namespace App\Filament\Resources\Payments;
 
 use App\Actions\Payments\RejectCompetitionPayment;
-use App\Actions\Payments\ReplaceCompetitionPaymentProof;
 use App\Actions\Payments\VerifyCompetitionPayment;
 use App\Enums\PaymentStatus;
 use App\Filament\Resources\Payments\Pages\ListPayments;
 use App\Models\Payment;
 use BackedEnum;
 use Filament\Actions\Action;
-use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\TextInput;
-use Filament\Notifications\Notification;
+use Filament\Forms\Components\Textarea;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
-use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Auth;
-use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class PaymentResource extends Resource
 {
@@ -38,115 +33,48 @@ class PaymentResource extends Resource
 
     public static function table(Table $table): Table
     {
-        return $table
-            ->columns([
-                ImageColumn::make('proof_preview')
-                    ->label('Proof')
-                    ->state(fn (Payment $record): ?string => static::proofPreviewUrl($record))
-                    ->square()
-                    ->imageSize(48)
-                    ->checkFileExistence(false),
-                TextColumn::make('registration.team.name')->label('Team')->searchable()->sortable(),
-                TextColumn::make('registration.team.captain.name')->label('Captain')->searchable(),
-                TextColumn::make('registration.competition.code')->label('Competition')->badge()->sortable(),
-                TextColumn::make('sender_name')->label('Sender')->placeholder('Not submitted')->searchable(),
-                TextColumn::make('status')
-                    ->badge()
-                    ->formatStateUsing(fn (?PaymentStatus $state): string => $state?->value ?? 'NOT_SUBMITTED'),
-                TextColumn::make('verified_at')->dateTime()->placeholder('—')->sortable(),
-                TextColumn::make('verifier.name')->label('Verified by')->placeholder('—'),
-                TextColumn::make('updated_at')->label('Updated')->dateTime()->sortable(),
-            ])
-            ->filters([
-                SelectFilter::make('status')->options([
-                    PaymentStatus::WaitingVerification->value => 'Waiting verification',
-                    PaymentStatus::Verified->value => 'Verified',
-                    PaymentStatus::Rejected->value => 'Rejected',
-                ]),
-                SelectFilter::make('competition')
-                    ->relationship('registration.competition', 'name')
-                    ->searchable()
-                    ->preload(),
-            ])
-            ->recordActions([
-                Action::make('viewDetails')
-                    ->label('View details')
-                    ->icon(Heroicon::OutlinedEye)
-                    ->modalHeading('Competition payment details')
-                    ->modalContent(fn (Payment $record) => view('payment-details', [
-                        'payment' => $record->loadMissing(['registration.team.captain', 'registration.competition', 'verifier']),
-                        'proofUrl' => static::proofPreviewUrl($record),
-                    ]))
-                    ->modalSubmitAction(false)
-                    ->modalCancelActionLabel('Close')
-                    ->visible(fn (Payment $record): bool => $record->hasProof()),
-                Action::make('approve')
-                    ->icon(Heroicon::OutlinedCheckCircle)
-                    ->color('success')
-                    ->requiresConfirmation()
-                    ->visible(fn (Payment $record): bool => in_array($record->status, [PaymentStatus::WaitingVerification, PaymentStatus::Rejected], true))
-                    ->action(function (Payment $record): void {
-                        app(VerifyCompetitionPayment::class)->handle(Auth::user(), $record);
-                        Notification::make()->title('Payment verified')->success()->send();
-                    }),
-                Action::make('reject')
-                    ->icon(Heroicon::OutlinedXCircle)
-                    ->color('danger')
-                    ->requiresConfirmation()
-                    ->visible(fn (Payment $record): bool => $record->status === PaymentStatus::WaitingVerification)
-                    ->action(function (Payment $record): void {
-                        app(RejectCompetitionPayment::class)->handle(Auth::user(), $record);
-                        Notification::make()->title('Payment rejected')->success()->send();
-                    }),
-                Action::make('replaceProof')
-                    ->label('Replace proof')
-                    ->icon(Heroicon::OutlinedArrowUpTray)
-                    ->visible(fn (Payment $record): bool => $record->status === PaymentStatus::Rejected)
-                    ->requiresConfirmation()
-                    ->form([
-                        TextInput::make('sender_name')->required()->maxLength(120),
-                        FileUpload::make('proof')
-                            ->required()
-                            ->acceptedFileTypes(['image/jpeg', 'image/png'])
-                            ->maxSize(2048)
-                            ->storeFiles(false),
-                    ])
-                    ->fillForm(fn (Payment $record): array => ['sender_name' => $record->sender_name])
-                    ->action(function (Payment $record, array $data): void {
-                        $proof = $data['proof'];
-
-                        if (! $proof instanceof TemporaryUploadedFile) {
-                            return;
-                        }
-
-                        app(ReplaceCompetitionPaymentProof::class)->handle(
-                            Auth::user(),
-                            $record,
-                            $data['sender_name'],
-                            $proof,
-                        );
-                        Notification::make()->title('Payment proof replaced')->success()->send();
-                    }),
-            ]);
+        return $table->columns([
+            TextColumn::make('registration.team.name')->label('Team')->searchable()->sortable(),
+            TextColumn::make('registration.team.captain.name')->label('Captain')->searchable(),
+            TextColumn::make('registration.competition.code')->label('Competition')->badge(),
+            TextColumn::make('sender_name')->label('Sender')->placeholder('Not submitted'),
+            TextColumn::make('status')->badge()->placeholder('NOT_SUBMITTED'),
+            TextColumn::make('documents_submitted_at')->label('Documents submitted')->dateTime()->sortable(),
+            TextColumn::make('review_note')->label('Review note')->limit(60)->wrap(),
+            TextColumn::make('verified_at')->dateTime(),
+            TextColumn::make('verifier.name')->label('Reviewed by'),
+        ])->filters([
+            SelectFilter::make('status')->options([
+                PaymentStatus::WaitingVerification->value => 'Waiting verification',
+                PaymentStatus::Verified->value => 'Verified',
+                PaymentStatus::Rejected->value => 'Needs correction / rejected',
+            ]),
+        ])->recordActions([
+            Action::make('openFolder')->label('Open team folder')
+                ->icon(Heroicon::OutlinedFolderOpen)
+                ->url(fn (Payment $record): string => route('dashboard.team.documents', $record->registration->team))
+                ->openUrlInNewTab()
+                ->visible(fn (Payment $record): bool => $record->registration->team->hasDocumentsFolder()),
+            Action::make('viewDetails')->label('Review documents')
+                ->modalHeading('Review team KTM and competition payment')
+                ->modalContent(fn (Payment $record) => view('payment-details', [
+                    'payment' => $record->loadMissing(['registration.team.captain', 'registration.team.members', 'registration.competition', 'verifier']),
+                ]))
+                ->modalSubmitAction(false)->modalCancelActionLabel('Close'),
+            Action::make('approve')->label('Approve documents and payment')->color('success')
+                ->requiresConfirmation()
+                ->modalDescription('Confirm that the folder is accessible, every participant KTM is valid, and the payment proof matches this competition and fee.')
+                ->visible(fn (Payment $record): bool => $record->status === PaymentStatus::WaitingVerification)
+                ->action(fn (Payment $record) => app(VerifyCompetitionPayment::class)->handle(Auth::user(), $record)),
+            Action::make('reject')->label('Request correction')->color('danger')
+                ->form([Textarea::make('review_note')->label('What must the participant correct?')->required()->maxLength(2000)])
+                ->visible(fn (Payment $record): bool => $record->status === PaymentStatus::WaitingVerification)
+                ->action(fn (Payment $record, array $data) => app(RejectCompetitionPayment::class)->handle(Auth::user(), $record, $data['review_note'])),
+        ]);
     }
 
     public static function getPages(): array
     {
-        return [
-            'index' => ListPayments::route('/'),
-        ];
-    }
-
-    private static function proofPreviewUrl(Payment $payment): ?string
-    {
-        if (! $payment->hasProof()) {
-            return null;
-        }
-
-        if (str_starts_with($payment->payment_proof_file_id, 'seed-')) {
-            return asset('images/brand/catalyst-mark.png');
-        }
-
-        return route('dashboard.competition-payment.proof', $payment);
+        return ['index' => ListPayments::route('/')];
     }
 }

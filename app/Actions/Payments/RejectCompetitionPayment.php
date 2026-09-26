@@ -5,19 +5,26 @@ namespace App\Actions\Payments;
 use App\Enums\PaymentStatus;
 use App\Enums\RegistrationStatus;
 use App\Models\Payment;
+use App\Models\Team;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 class RejectCompetitionPayment
 {
-    public function handle(User $admin, Payment $payment): Payment
+    public function handle(User $admin, Payment $payment, ?string $reviewNote = null): Payment
     {
         Gate::forUser($admin)->authorize('verify', $payment);
 
-        return DB::transaction(function () use ($admin, $payment): Payment {
+        if ($reviewNote !== null) {
+            Validator::make(['review_note' => trim($reviewNote)], ['review_note' => ['required', 'string', 'max:2000']])->validate();
+        }
+
+        return DB::transaction(function () use ($admin, $payment, $reviewNote): Payment {
+            Team::query()->lockForUpdate()->findOrFail($payment->registration->team_id);
             $lockedPayment = Payment::query()
                 ->with('registration')
                 ->lockForUpdate()
@@ -33,11 +40,16 @@ class RejectCompetitionPayment
                 ]);
             }
 
+            if ($lockedPayment->documents_submitted_at && blank($reviewNote)) {
+                throw ValidationException::withMessages(['review_note' => 'Explain which documents or permissions must be corrected.']);
+            }
+
             $registration = $lockedPayment->registration()->lockForUpdate()->firstOrFail();
             $verifiedAt = now();
 
             $lockedPayment->update([
                 'status' => PaymentStatus::Rejected,
+                'review_note' => $reviewNote === null ? null : trim($reviewNote),
                 'verified_by' => $admin->id,
                 'verified_at' => $verifiedAt,
             ]);

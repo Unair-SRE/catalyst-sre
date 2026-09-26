@@ -1,5 +1,7 @@
 # Frontend Foundation v1
 
+> Current competition documents use one Google Drive folder per team. See [Team Drive workflow](team-drive-documents.md). Older prototype descriptions below are historical; active Overview and Registration routes read the database.
+
 ## Stack
 
 - Laravel 13 server-rendered Blade

@@ -21,15 +21,15 @@ class DatabaseOverview extends Component
         $actions = collect();
         if (! $team) {
             $actions->push(['title' => 'Create your team', 'description' => 'Set up your team before registering for a competition.', 'label' => 'Manage Team', 'href' => route('dashboard.team.index')]);
-        } elseif (! $team->hasCompleteKtm()) {
-            $actions->push(['title' => 'Complete team documents', 'description' => 'Upload a KTM for the captain and every member.', 'label' => 'Upload KTM', 'href' => route('dashboard.team.index')]);
+        } elseif (! $team->hasDocumentsFolder()) {
+            $actions->push(['title' => 'Complete team documents', 'description' => 'Add the team Google Drive folder containing all KTM files.', 'label' => 'Add team folder', 'href' => route('dashboard.team.index')]);
         }
 
         foreach ($registrations as $registration) {
             if ($registration->payment?->status === null) {
-                $actions->push(['title' => 'Complete '.$registration->competition->code->value.' payment', 'description' => 'Submit one payment proof for this registration.', 'label' => 'Continue Payment', 'href' => route('dashboard.registration.payment', strtolower($registration->competition->code->value))]);
+                $actions->push(['title' => 'Complete '.$registration->competition->code->value.' payment', 'description' => 'Add the proof to your team folder and confirm payment.', 'label' => 'Continue Payment', 'href' => route('dashboard.registration.payment', strtolower($registration->competition->code->value))]);
             } elseif ($registration->payment->status === PaymentStatus::Rejected) {
-                $actions->push(['title' => $registration->competition->code->value.' payment rejected', 'description' => 'Contact the Catalyst contact person for correction.', 'label' => 'View Details', 'href' => route('dashboard.registration.payment', strtolower($registration->competition->code->value))]);
+                $actions->push(['title' => $registration->competition->code->value.' payment rejected', 'description' => 'Correct the documents listed in the review note, then submit for review again.', 'label' => 'View Details', 'href' => route('dashboard.registration.payment', strtolower($registration->competition->code->value))]);
             }
         }
 

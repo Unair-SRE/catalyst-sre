@@ -86,7 +86,7 @@ class CompetitionRegistrationDetail extends Component
     {
         $team = $this->team();
         $competition = $this->competitionModel();
-        if (! $team || ! $competition->acceptsRegistration() || ! $team->hasCompleteKtm() || $this->registration()) {
+        if (! $team || ! $competition->acceptsRegistration() || ! $team->hasDocumentsFolder() || $this->registration()) {
             return false;
         }
 
@@ -102,8 +102,8 @@ class CompetitionRegistrationDetail extends Component
         if (! $team) {
             return 'Create your team before registering for a competition.';
         }
-        if (! $team->hasCompleteKtm()) {
-            return 'Upload the captain and every member KTM before registering.';
+        if (! $team->hasDocumentsFolder()) {
+            return 'Add your team Google Drive folder containing all KTM files before registering.';
         }
         if (! $competition->acceptsRegistration()) {
             return 'Registration for this competition is currently closed.';
