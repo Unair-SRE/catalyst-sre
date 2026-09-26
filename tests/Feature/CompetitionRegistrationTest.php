@@ -24,7 +24,7 @@ function registrationReadyTeam(array $teamOverrides = []): Team
         'ktm_file_id' => 'captain-ktm',
     ]);
 
-    return Team::factory()->for($captain, 'captain')->create($teamOverrides);
+    return Team::factory()->for($captain, 'captain')->create(['documents_drive_url' => 'https://drive.google.com/drive/folders/team', ...$teamOverrides]);
 }
 
 test('captain can register a complete team for mini case and one main competition', function () {
@@ -60,13 +60,13 @@ test('a team cannot enter both main competitions', function () {
     app(RegisterTeam::class)->handle($team->captain, $team, $businessPlan);
 })->throws(ValidationException::class, 'only one main competition');
 
-test('registration rejects a team when any KTM is missing', function () {
+test('registration rejects a team without a Drive folder', function () {
     $team = registrationReadyTeam();
-    $team->captain->forceFill(['ktm_url' => null, 'ktm_file_id' => null])->save();
+    $team->update(['documents_drive_url' => null]);
     $competition = Competition::factory()->code(CompetitionCode::MiniCase)->create();
 
     app(RegisterTeam::class)->handle($team->captain, $team, $competition);
-})->throws(ValidationException::class, 'must have a KTM');
+})->throws(ValidationException::class, 'Google Drive folder');
 
 test('registration rejects a closed competition', function () {
     $team = registrationReadyTeam();

@@ -5,6 +5,7 @@ namespace App\Actions\Payments;
 use App\Enums\PaymentStatus;
 use App\Enums\RegistrationStatus;
 use App\Models\Payment;
+use App\Models\Team;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -18,6 +19,7 @@ class VerifyCompetitionPayment
         Gate::forUser($admin)->authorize('verify', $payment);
 
         return DB::transaction(function () use ($admin, $payment): Payment {
+            Team::query()->lockForUpdate()->findOrFail($payment->registration->team_id);
             $lockedPayment = Payment::query()
                 ->with('registration')
                 ->lockForUpdate()
@@ -25,6 +27,10 @@ class VerifyCompetitionPayment
 
             if ($lockedPayment->status === PaymentStatus::Verified) {
                 return $lockedPayment;
+            }
+
+            if ($lockedPayment->documents_submitted_at && $lockedPayment->status !== PaymentStatus::WaitingVerification) {
+                throw ValidationException::withMessages(['payment' => 'The participant must resubmit corrected documents before approval.']);
             }
 
             if (! $lockedPayment->hasProof() || $lockedPayment->status === null) {
@@ -38,6 +44,7 @@ class VerifyCompetitionPayment
 
             $lockedPayment->update([
                 'status' => PaymentStatus::Verified,
+                'review_note' => null,
                 'verified_by' => $admin->id,
                 'verified_at' => $verifiedAt,
             ]);

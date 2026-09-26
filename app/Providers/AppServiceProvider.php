@@ -9,6 +9,7 @@ use App\Contracts\SummitTicketStorage;
 use App\Services\ImageKitCompetitionPaymentStorage;
 use App\Services\ImageKitKtmStorage;
 use App\Services\ImageKitSummitPaymentStorage;
+use App\Services\ImageKitSummitTicketStorage;
 use Illuminate\Foundation\Console\ServeCommand;
 use Illuminate\Foundation\DevCommands;
 use Illuminate\Support\Facades\File;

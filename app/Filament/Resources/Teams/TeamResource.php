@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Teams;
 use App\Filament\Resources\Teams\Pages\EditTeam;
 use App\Filament\Resources\Teams\Pages\ListTeams;
 use App\Models\Team;
+use App\Rules\GoogleDriveFolder;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\EditAction;
@@ -13,7 +14,6 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
-use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -30,62 +30,31 @@ class TeamResource extends Resource
         return $schema->components([
             TextInput::make('name')->required()->maxLength(120),
             TextInput::make('institution')->required()->maxLength(160),
+            TextInput::make('documents_drive_url')->label('Team Google Drive folder')->url()
+                ->maxLength(2048)->rules([new GoogleDriveFolder])
+                ->helperText('Changing the folder sends previously submitted Drive payments back for review.'),
         ]);
     }
 
     public static function table(Table $table): Table
     {
-        return $table
-            ->columns([
-                ImageColumn::make('captain_ktm_preview')
-                    ->label('Captain KTM')
-                    ->state(fn (Team $record): ?string => static::captainKtmPreviewUrl($record))
-                    ->square()
-                    ->imageSize(48)
-                    ->checkFileExistence(false),
-                TextColumn::make('name')->searchable()->sortable(),
-                TextColumn::make('institution')->searchable(),
-                TextColumn::make('captain.name')->label('Captain')->searchable(),
-                TextColumn::make('captain.email')->label('Captain email')->searchable(),
-                TextColumn::make('members_count')->counts('members')->label('Members'),
-                IconColumn::make('locked_at')->label('Locked')->boolean(),
-            ])
-            ->recordActions([
-                Action::make('viewCaptainKtm')
-                    ->label('View captain KTM')
-                    ->icon(Heroicon::OutlinedIdentification)
-                    ->modalHeading(fn (Team $record): string => $record->captain->name.' — KTM')
-                    ->modalContent(fn (Team $record) => view('ktm-details', [
-                        'personName' => $record->captain->name,
-                        'teamName' => $record->name,
-                        'fileId' => $record->captain->ktm_file_id,
-                        'imageUrl' => static::captainKtmPreviewUrl($record),
-                    ]))
-                    ->modalSubmitAction(false)
-                    ->modalCancelActionLabel('Close')
-                    ->visible(fn (Team $record): bool => $record->captain->hasCompleteKtm()),
-                EditAction::make(),
-            ]);
+        return $table->columns([
+            TextColumn::make('name')->searchable()->sortable(),
+            TextColumn::make('institution')->searchable(),
+            TextColumn::make('captain.name')->label('Captain')->searchable(),
+            TextColumn::make('captain.email')->label('Captain email'),
+            TextColumn::make('members_count')->counts('members')->label('Additional members'),
+            IconColumn::make('locked_at')->label('Locked')->boolean(),
+        ])->recordActions([
+            Action::make('openFolder')->label('Open team folder')
+                ->url(fn (Team $record): string => route('dashboard.team.documents', $record))
+                ->openUrlInNewTab()->visible(fn (Team $record): bool => $record->hasDocumentsFolder()),
+            EditAction::make(),
+        ]);
     }
 
     public static function getPages(): array
     {
-        return [
-            'index' => ListTeams::route('/'),
-            'edit' => EditTeam::route('/{record}/edit'),
-        ];
-    }
-
-    private static function captainKtmPreviewUrl(Team $team): ?string
-    {
-        if (! $team->captain->hasCompleteKtm()) {
-            return null;
-        }
-
-        if (str_starts_with($team->captain->ktm_file_id, 'seed-')) {
-            return asset('images/brand/catalyst-mark.png');
-        }
-
-        return route('dashboard.private-files.captain-ktm', $team->captain);
+        return ['index' => ListTeams::route('/'), 'edit' => EditTeam::route('/{record}/edit')];
     }
 }

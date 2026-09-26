@@ -1,19 +1,20 @@
-<div class="space-y-6">
+<div class="space-y-5">
     <dl class="grid gap-4 sm:grid-cols-2">
-        <div><dt class="text-sm text-gray-500">Team</dt><dd class="font-medium">{{ $payment->registration->team->name }}</dd></div>
-        <div><dt class="text-sm text-gray-500">Captain</dt><dd class="font-medium">{{ $payment->registration->team->captain->name }}</dd></div>
-        <div><dt class="text-sm text-gray-500">Competition</dt><dd class="font-medium">{{ $payment->registration->competition->name }}</dd></div>
-        <div><dt class="text-sm text-gray-500">Sender</dt><dd class="font-medium">{{ $payment->sender_name }}</dd></div>
-        <div><dt class="text-sm text-gray-500">Status</dt><dd class="font-medium">{{ $payment->status?->value ?? 'NOT_SUBMITTED' }}</dd></div>
-        <div><dt class="text-sm text-gray-500">Verified by</dt><dd class="font-medium">{{ $payment->verifier?->name ?? '—' }}</dd></div>
+        <div><dt>Team</dt><dd class="font-semibold">{{ $payment->registration->team->name }}</dd></div>
+        <div><dt>Competition</dt><dd>{{ $payment->registration->competition->name }}</dd></div>
+        <div><dt>Sender</dt><dd>{{ $payment->sender_name ?? 'Not submitted' }}</dd></div>
+        <div><dt>Status</dt><dd>{{ $payment->status?->value ?? 'NOT_SUBMITTED' }}</dd></div>
+        <div><dt>Expected fee</dt><dd>IDR {{ number_format((float) $payment->registration->competition->registration_fee, 0, ',', '.') }}</dd></div>
+        <div><dt>Reviewed by</dt><dd>{{ $payment->verifier?->name ?? 'Not reviewed' }}</dd></div>
     </dl>
-
-    @if (str_starts_with($payment->payment_proof_file_id, 'seed-'))
-        <p class="rounded-lg bg-warning-50 p-3 text-sm text-warning-700">Seeder stores payment metadata only. Upload a real proof to preview the ImageKit asset.</p>
+    <p>Check KTM files for these participants:</p>
+    <ul class="list-disc pl-5"><li>{{ $payment->registration->team->captain->name }} (Captain)</li>@foreach ($payment->registration->team->members as $member)<li>{{ $member->name }}</li>@endforeach</ul>
+    <p>Check <strong>Bukti_Bayar_{{ $payment->registration->competition->code->value }}</strong> in the folder against the expected fee.</p>
+    @if ($payment->registration->team->hasDocumentsFolder())
+        <a class="font-semibold underline" href="{{ route('dashboard.team.documents', $payment->registration->team) }}" target="_blank" rel="noopener noreferrer">Open team Google Drive folder</a>
+        <p class="text-sm">Open Drive using {{ config('services.catalyst.documents_reviewer_email') }}. A saved link does not prove the documents are accessible or valid.</p>
+    @else
+        <p>No team folder has been provided. Ask the captain to add it from Team Management.</p>
     @endif
-
-    <figure class="overflow-hidden rounded-xl border bg-gray-50 p-3">
-        <img class="mx-auto max-h-[65vh] w-auto object-contain" src="{{ $proofUrl }}" alt="Payment proof from {{ $payment->sender_name }}">
-        <figcaption class="mt-3 break-all text-xs text-gray-500">File ID: {{ $payment->payment_proof_file_id }}</figcaption>
-    </figure>
+    @if ($payment->review_note)<p class="whitespace-pre-line">{{ $payment->review_note }}</p>@endif
 </div>

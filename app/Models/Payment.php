@@ -12,6 +12,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable([
     'registration_id',
     'sender_name',
+    'documents_submitted_at',
+    'review_note',
     'payment_proof_url',
     'payment_proof_file_id',
     'status',
@@ -28,6 +30,7 @@ class Payment extends Model
         return [
             'status' => PaymentStatus::class,
             'verified_at' => 'datetime',
+            'documents_submitted_at' => 'datetime',
         ];
     }
 
@@ -43,6 +46,10 @@ class Payment extends Model
 
     public function hasProof(): bool
     {
+        if ($this->documents_submitted_at !== null) {
+            return $this->registration->team->hasDocumentsFolder();
+        }
+
         return filled($this->payment_proof_url) && filled($this->payment_proof_file_id);
     }
 }

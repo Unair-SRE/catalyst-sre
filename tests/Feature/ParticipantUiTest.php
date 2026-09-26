@@ -94,13 +94,14 @@ test('registration detail blocks incomplete teams and creates a real registratio
 
     Livewire::actingAs($team->captain)
         ->test(CompetitionRegistrationDetail::class, ['competition' => 'mcc'])
-        ->assertSee('Upload the captain and every member KTM')
+        ->assertSee('Add your team Google Drive folder')
         ->assertDontSee('Register this team');
 
     $team->captain->update([
         'ktm_url' => 'https://ik.imagekit.io/catalyst/ktm/captain.jpg',
         'ktm_file_id' => 'captain-ktm',
     ]);
+    $team->update(['documents_drive_url' => 'https://drive.google.com/drive/folders/team']);
 
     Livewire::actingAs($team->captain)
         ->test(CompetitionRegistrationDetail::class, ['competition' => 'mcc'])
