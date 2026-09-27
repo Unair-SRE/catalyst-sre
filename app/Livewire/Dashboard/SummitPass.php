@@ -2,225 +2,133 @@
 
 namespace App\Livewire\Dashboard;
 
-use App\Support\Dashboard\DashboardSummitPassState;
-use Carbon\CarbonImmutable;
+use App\Actions\Summit\ConfirmSummitDrivePayment;
+use App\Actions\Summit\CreateSummitOrder;
+use App\Models\PaymentSetting;
+use App\Models\SummitOrder;
+use App\Rules\GoogleDriveFolder;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
-use Livewire\Attributes\Url;
 use Livewire\Component;
 
 class SummitPass extends Component
 {
-    #[Url(as: 'scenario', except: 'no_pass')]
-    public string $scenario = 'no_pass';
+    /** @var array<int, string> */
+    public array $holderNames = [''];
 
-    public string $status = 'NO_PASS';
+    public string $senderName = '';
 
-    /** @var array<string, string> */
-    public array $attendee = [];
+    public string $driveUrl = '';
 
-    /** @var array<string, mixed> */
-    public array $payment = [];
+    public bool $documentsConfirmed = false;
 
-    /** @var array<string, string>|null */
-    public ?array $ticket = null;
-
-    /** @var array<int, array<string, string>> */
-    public array $history = [];
-
-    public ?string $submittedAt = null;
-
-    public ?string $checkedInAt = null;
-
-    public ?string $rejectionReason = null;
+    public bool $showPurchaseForm = false;
 
     public ?string $feedback = null;
 
-    public bool $editingPayment = false;
-
-    public bool $showConfirm = false;
-
     public function mount(): void
     {
-        $this->loadScenario();
-    }
-
-    public function updatedScenario(): void
-    {
-        $this->loadScenario();
+        $this->senderName = Auth::user()->name;
+        $this->showPurchaseForm = ! SummitOrder::query()->where('user_id', Auth::id())->exists();
     }
 
     public function startPurchase(): void
     {
-        $this->scenario = 'purchase';
-        $this->loadScenario();
-    }
-
-    public function updatePayment(): void
-    {
-        if ($this->status !== 'REJECTED') {
-            return;
-        }
-
-        $this->editingPayment = true;
+        $this->resetPurchaseForm();
+        $this->showPurchaseForm = true;
         $this->feedback = null;
     }
 
-    /**
-     * Receives payment-proof metadata only. The file bytes never leave the browser in this prototype.
-     *
-     * @param  array<string, mixed>  $proof
-     */
-    public function selectProof(array $proof): void
+    public function cancelPurchase(): void
     {
-        if (! $this->formEditable()) {
-            return;
-        }
-
-        $type = (string) ($proof['type'] ?? 'application/octet-stream');
-        $size = (int) ($proof['size_bytes'] ?? 0);
-
-        if (! in_array($type, ['image/jpeg', 'image/png'], true)) {
-            $this->addError('payment.proof', 'Payment proof must be a JPG, JPEG, or PNG image.');
-
-            return;
-        }
-
-        if ($size > 10 * 1024 * 1024) {
-            $this->addError('payment.proof', 'Payment proof may not be larger than 10 MB.');
-
-            return;
-        }
-
-        $this->resetErrorBag('payment.proof');
-        $this->payment['proof'] = [
-            'name' => (string) ($proof['name'] ?? 'payment-proof'),
-            'type' => $type,
-            'size_bytes' => $size,
-            'size_label' => number_format($size / 1024 / 1024, 1).' MB',
-        ];
+        $this->showPurchaseForm = false;
+        $this->resetValidation();
     }
 
-    public function removeProof(): void
+    public function addHolder(): void
     {
-        if ($this->formEditable()) {
-            $this->payment['proof'] = null;
-        }
+        $this->holderNames[] = '';
     }
 
-    public function openConfirmation(): void
+    public function removeHolder(int $index): void
     {
-        if (! $this->formEditable()) {
+        if (count($this->holderNames) <= 1 || ! array_key_exists($index, $this->holderNames)) {
             return;
         }
 
-        $this->validate($this->rules());
-        $this->showConfirm = true;
+        unset($this->holderNames[$index]);
+        $this->holderNames = array_values($this->holderNames);
     }
 
-    public function cancelConfirmation(): void
-    {
-        $this->showConfirm = false;
-    }
+    public function submitPurchase(
+        CreateSummitOrder $createOrder,
+        ConfirmSummitDrivePayment $confirmPayment,
+    ): void {
+        $validated = $this->validate([
+            'holderNames' => ['required', 'array', 'min:1'],
+            'holderNames.*' => ['required', 'string', 'max:120'],
+            'senderName' => ['required', 'string', 'max:120'],
+            'driveUrl' => ['required', 'string', 'max:2048', new GoogleDriveFolder],
+            'documentsConfirmed' => ['accepted'],
+        ]);
 
-    public function submitPurchase(): void
-    {
-        if (! $this->formEditable()) {
+        try {
+            $order = DB::transaction(function () use ($createOrder, $confirmPayment, $validated): SummitOrder {
+                $order = $createOrder->handle(Auth::user(), $validated['holderNames']);
+
+                return $confirmPayment->handle(
+                    Auth::user(),
+                    $order,
+                    $validated['senderName'],
+                    $validated['driveUrl'],
+                    $validated['documentsConfirmed'],
+                );
+            });
+        } catch (ValidationException $exception) {
+            foreach ($exception->errors() as $field => $messages) {
+                $this->addError($this->formField($field), $messages[0]);
+            }
+
             return;
         }
 
-        $this->validate($this->rules());
-        $resubmission = $this->status === 'REJECTED';
-        $now = CarbonImmutable::now('Asia/Jakarta');
-
-        $this->status = 'WAITING_VERIFICATION';
-        $this->scenario = 'payment_waiting';
-        $this->submittedAt = $now->format('Y-m-d H:i:s');
-        $this->history[] = app(DashboardSummitPassState::class)->history(
-            $resubmission ? 'Payment resubmitted' : 'Payment submitted',
-            $this->submittedAt,
-            'Payment is waiting for Catalyst review.',
-        );
-        $this->feedback = 'Summit Pass purchase submitted for payment review.';
-        $this->editingPayment = false;
-        $this->showConfirm = false;
+        $this->resetPurchaseForm();
+        $this->showPurchaseForm = false;
+        $this->feedback = "Summit order #{$order->id} was submitted for payment review.";
     }
 
     public function render(): View
     {
         return view('livewire.dashboard.summit-pass', [
-            'state' => $this->state(),
-            'scenarios' => DashboardSummitPassState::scenarios(),
-            'form_editable' => $this->formEditable(),
+            'orders' => SummitOrder::query()
+                ->where('user_id', Auth::id())
+                ->with(['tickets', 'verifier'])
+                ->latest()
+                ->get(),
+            'setting' => PaymentSetting::query()->where('is_active', true)->latest('id')->first(),
         ]);
     }
 
-    /**
-     * @return array<string, mixed>
-     */
-    private function state(): array
+    private function resetPurchaseForm(): void
     {
-        $provider = app(DashboardSummitPassState::class);
-        $state = $provider->for($this->scenario);
-
-        $state['status'] = $this->status;
-        $state['status_display'] = $provider->status($this->status);
-        $state['attendee'] = $this->attendee;
-        $state['payment'] = $this->payment;
-        $state['ticket'] = $this->ticket;
-        $state['history'] = $this->history;
-        $state['submitted_at'] = $this->submittedAt;
-        $state['submitted_label'] = $this->submittedAt ? $this->dateTimeLabel($this->submittedAt) : null;
-        $state['checked_in_at'] = $this->checkedInAt;
-        $state['checked_in_label'] = $this->checkedInAt ? $this->dateTimeLabel($this->checkedInAt) : null;
-        $state['rejection_reason'] = $this->rejectionReason;
-
-        return $state;
+        $this->holderNames = [''];
+        $this->senderName = Auth::user()->name;
+        $this->driveUrl = '';
+        $this->documentsConfirmed = false;
+        $this->resetValidation();
     }
 
-    private function loadScenario(): void
+    private function formField(string $field): string
     {
-        $this->scenario = array_key_exists($this->scenario, DashboardSummitPassState::scenarios()) ? $this->scenario : 'no_pass';
-        $state = app(DashboardSummitPassState::class)->for($this->scenario);
-
-        $this->status = $state['status'];
-        $this->attendee = $state['attendee'];
-        $this->payment = $state['payment'];
-        $this->ticket = $state['ticket'];
-        $this->history = $state['history'];
-        $this->submittedAt = $state['submitted_at'];
-        $this->checkedInAt = $state['checked_in_at'];
-        $this->rejectionReason = $state['rejection_reason'];
-        $this->editingPayment = false;
-        $this->feedback = null;
-        $this->showConfirm = false;
-    }
-
-    private function formEditable(): bool
-    {
-        return $this->status === 'PURCHASE' || ($this->status === 'REJECTED' && $this->editingPayment);
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    private function rules(): array
-    {
-        return [
-            'attendee.name' => 'required|string|max:120',
-            'attendee.email' => 'required|email|max:160',
-            'attendee.whatsapp' => 'required|string|max:40',
-            'attendee.institution' => 'required|string|max:160',
-            'payment.sender_name' => 'required|string|max:120',
-            'payment.date' => 'required|date',
-            'payment.time' => 'required|date_format:H:i',
-            'payment.proof' => 'required|array',
-            'payment.proof.type' => 'required|in:image/jpeg,image/png',
-            'payment.proof.size_bytes' => 'required|integer|max:10485760',
-        ];
-    }
-
-    private function dateTimeLabel(string $value): string
-    {
-        return CarbonImmutable::parse($value, 'Asia/Jakarta')->format('d F Y · H:i').' WIB';
+        return match ($field) {
+            'holders' => 'holderNames',
+            'sender_name' => 'senderName',
+            'payment_drive_url' => 'driveUrl',
+            'confirmed' => 'documentsConfirmed',
+            'order' => 'holderNames',
+            default => $field,
+        };
     }
 }

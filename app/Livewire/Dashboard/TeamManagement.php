@@ -19,6 +19,8 @@ class TeamManagement extends Component
 
     public string $documentsDriveUrl = '';
 
+    public bool $documentsAccessConfirmed = false;
+
     public array $setupMembers = [];
 
     public array $memberForm = ['name' => '', 'email' => '', 'whatsapp' => ''];
@@ -40,13 +42,18 @@ class TeamManagement extends Component
     public function createTeam(CreateDriveTeam $action): void
     {
         try {
-            $action->handle(Auth::user(), [...$this->teamForm, 'documents_drive_url' => trim($this->documentsDriveUrl)], $this->setupMembers);
+            $action->handle(Auth::user(), [
+                ...$this->teamForm,
+                'documents_drive_url' => trim($this->documentsDriveUrl),
+                'documents_access_confirmed' => $this->documentsAccessConfirmed,
+            ], $this->setupMembers);
         } catch (ValidationException $exception) {
             $this->copyErrors($exception);
 
             return;
         }
         $this->setupMembers = [];
+        $this->documentsAccessConfirmed = false;
         $this->resetValidation();
         $this->feedback = 'Team created. Your folder will be checked by the committee.';
     }
@@ -79,15 +86,24 @@ class TeamManagement extends Component
     public function saveFolder(UpdateDriveFolder $action): void
     {
         try {
-            $action->handle(Auth::user(), $this->teamOrFail(), trim($this->documentsDriveUrl));
+            $action->handle(
+                Auth::user(),
+                $this->teamOrFail(),
+                trim($this->documentsDriveUrl),
+                $this->documentsAccessConfirmed,
+            );
         } catch (ValidationException $exception) {
-            foreach ($exception->errors() as $messages) {
-                $this->addError('documentsDriveUrl', $messages[0]);
+            foreach ($exception->errors() as $field => $messages) {
+                $this->addError(
+                    $field === 'documents_access_confirmed' ? 'documentsAccessConfirmed' : 'documentsDriveUrl',
+                    $messages[0],
+                );
             }
 
             return;
         }
         $this->resetValidation();
+        $this->documentsAccessConfirmed = false;
         $this->feedback = 'Team folder saved. Sharing permissions and documents will be checked by the committee.';
     }
 
@@ -166,6 +182,7 @@ class TeamManagement extends Component
         foreach ($exception->errors() as $field => $messages) {
             $key = match (true) {
                 $field === 'team.documents_drive_url' => 'documentsDriveUrl',
+                $field === 'team.documents_access_confirmed' => 'documentsAccessConfirmed',
                 str_starts_with($field, 'team.') => 'teamForm.'.substr($field, 5),
                 str_starts_with($field, 'members.') => 'setupMembers.'.substr($field, 8),
                 default => 'setup',

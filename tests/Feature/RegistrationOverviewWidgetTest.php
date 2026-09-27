@@ -13,7 +13,7 @@ use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
-test('registration overview shows users teams registrations per competition and pending payments', function () {
+test('registration overview shows concise operational summaries', function () {
     $admin = User::factory()->admin()->create();
     User::factory()->count(2)->create();
     $competition = Competition::factory()->create([
@@ -26,8 +26,14 @@ test('registration overview shows users teams registrations per competition and 
 
     Livewire::actingAs($admin)
         ->test(RegistrationOverview::class)
-        ->assertSee('Total Users')
-        ->assertSee('Total Teams')
-        ->assertSee('MCC Registrations')
-        ->assertSee('Payments Awaiting Verification');
+        ->assertSee('Participants')
+        ->assertSee('Teams')
+        ->assertSee('Registrations')
+        ->assertSee('Registrations to Process')
+        ->assertSee('Payments to Verify')
+        ->assertSee('Verified Payments')
+        ->assertSee('Active Summit Tickets')
+        ->assertSee('Summit Check-ins')
+        ->assertDontSee('MCC Registrations')
+        ->assertDontSee('Verified Summit Revenue');
 });

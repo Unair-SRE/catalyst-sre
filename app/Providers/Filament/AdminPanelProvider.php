@@ -11,8 +11,6 @@ use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
-use Filament\Widgets\AccountWidget;
-use Filament\Widgets\FilamentInfoWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -29,6 +27,15 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('backincatalyst')
             ->login()
+            ->brandName('Catalyst Admin')
+            ->brandLogo(asset('images/brand/catalyst-mark.png'))
+            ->brandLogoHeight('2.5rem')
+            ->favicon(asset('images/brand/catalyst-mark.png'))
+            ->sidebarCollapsibleOnDesktop()
+            ->navigationGroups([
+                'Competition',
+                'Summit',
+            ])
             ->colors([
                 'primary' => Color::Amber,
             ])
@@ -40,8 +47,6 @@ class AdminPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
                 RegistrationOverview::class,
-                AccountWidget::class,
-                FilamentInfoWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,

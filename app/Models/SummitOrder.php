@@ -15,9 +15,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'unit_price',
     'total_amount',
     'sender_name',
+    'payment_drive_url',
+    'payment_submitted_at',
     'payment_proof_url',
     'payment_proof_file_id',
     'payment_status',
+    'review_note',
     'verified_by',
     'verified_at',
 ])]
@@ -32,6 +35,7 @@ class SummitOrder extends Model
             'unit_price' => 'decimal:2',
             'total_amount' => 'decimal:2',
             'payment_status' => SummitOrderStatus::class,
+            'payment_submitted_at' => 'datetime',
             'verified_at' => 'datetime',
         ];
     }
@@ -51,8 +55,13 @@ class SummitOrder extends Model
         return $this->belongsTo(User::class, 'verified_by');
     }
 
-    public function hasProof(): bool
+    public function hasPaymentFolder(): bool
     {
-        return filled($this->payment_proof_url) && filled($this->payment_proof_file_id);
+        return filled($this->payment_drive_url) && $this->payment_submitted_at !== null;
+    }
+
+    public function hasPaymentEvidence(): bool
+    {
+        return $this->hasPaymentFolder();
     }
 }

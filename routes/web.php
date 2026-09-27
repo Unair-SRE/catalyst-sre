@@ -2,10 +2,9 @@
 
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;
 use App\Http\Controllers\Auth\EmailVerificationOtpController;
-use App\Http\Controllers\CaptainKtmController;
-use App\Http\Controllers\CompetitionPaymentProofController;
 use App\Http\Controllers\TeamDocumentsController;
-use App\Http\Controllers\TeamMemberKtmController;
+use App\Http\Controllers\SummitOrderDocumentsController;
+use App\Http\Controllers\SummitTicketDownloadController;
 use App\Models\Competition;
 use Illuminate\Support\Facades\Route;
 
@@ -63,15 +62,6 @@ Route::middleware(['auth', 'verified'])->prefix('dashboard')->name('dashboard.')
         return view('dashboard.registration.payment', ['competition' => $competition]);
     })->whereIn('competition', ['mcc', 'bcc', 'bpc'])->name('registration.payment');
 
-    Route::get('/competition-payments/{payment}/proof', CompetitionPaymentProofController::class)
-        ->name('competition-payment.proof');
-
-    Route::get('/private-files/captains/{user}/ktm', CaptainKtmController::class)
-        ->name('private-files.captain-ktm');
-
-    Route::get('/private-files/team-members/{teamMember}/ktm', TeamMemberKtmController::class)
-        ->name('private-files.team-member-ktm');
-
     Route::get('/registration/{competition}', function (string $competition) {
         return view('dashboard.registration.show', ['competition' => $competition]);
     })->whereIn('competition', ['mcc', 'bcc', 'bpc'])->name('registration.show');
@@ -89,6 +79,12 @@ Route::middleware(['auth', 'verified'])->prefix('dashboard')->name('dashboard.')
     Route::get('/summit-pass', function () {
         return view('dashboard.summit-pass.index');
     })->name('summit-pass.index');
+
+    Route::get('/summit-orders/{order}/documents', SummitOrderDocumentsController::class)
+        ->name('summit-order.documents');
+
+    Route::get('/summit-tickets/{ticket}/download', SummitTicketDownloadController::class)
+        ->name('summit-ticket.download');
 
     Route::get('/profile', function () {
         return view('dashboard.profile.index');

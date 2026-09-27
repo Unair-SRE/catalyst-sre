@@ -16,8 +16,8 @@ class TeamMemberFactory extends Factory
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
             'whatsapp' => fake()->numerify('08##########'),
-            'ktm_url' => 'https://ik.imagekit.io/catalyst/ktm/'.fake()->uuid().'.jpg',
-            'ktm_file_id' => fake()->uuid(),
+            'ktm_url' => null,
+            'ktm_file_id' => null,
         ];
     }
 }

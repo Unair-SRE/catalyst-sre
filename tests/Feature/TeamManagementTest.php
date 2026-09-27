@@ -24,7 +24,7 @@ function teamMemberData(array $overrides = []): array
         'name' => 'Bima Santoso',
         'email' => 'bima@example.test',
         'whatsapp' => '081300000000',
-        'ktm_url' => 'https://ik.imagekit.io/catalyst/ktm/bima.jpg',
+        'ktm_url' => 'https://example.test/legacy-ktm/bima.jpg',
         'ktm_file_id' => 'ktm-bima',
         ...$overrides,
     ];
@@ -186,7 +186,7 @@ test('team KTM completeness includes captain and every member', function () {
     expect($team->hasCompleteKtm())->toBeFalse();
 
     app(UpdateCaptainKtm::class)->handle($team->captain, $team, [
-        'ktm_url' => 'https://ik.imagekit.io/catalyst/ktm/captain.jpg',
+        'ktm_url' => 'https://example.test/legacy-ktm/captain.jpg',
         'ktm_file_id' => 'ktm-captain',
     ]);
 
@@ -200,29 +200,39 @@ test('admin can access team and member filament resources', function () {
     $admin = User::factory()->admin()->create();
     $team = Team::factory()->create(['documents_drive_url' => 'https://drive.google.com/drive/folders/team']);
     $team->captain->update([
-        'ktm_url' => 'https://ik.imagekit.io/catalyst/ktm/captain.jpg',
+        'ktm_url' => 'https://example.test/legacy-ktm/captain.jpg',
         'ktm_file_id' => 'captain-preview',
     ]);
     $member = TeamMember::factory()->for($team)->create([
-        'ktm_url' => 'https://ik.imagekit.io/catalyst/ktm/member.jpg',
+        'ktm_url' => 'https://example.test/legacy-ktm/member.jpg',
         'ktm_file_id' => 'member-preview',
     ]);
 
     $this->actingAs($admin)
         ->get(TeamResource::getUrl('index'))
         ->assertOk()
-        ->assertSee(route('dashboard.team.documents', $team));
+        ->assertDontSee($team->documents_drive_url);
+
+    $this->actingAs($admin)
+        ->get(TeamResource::getUrl('view', ['record' => $team]))
+        ->assertOk()
+        ->assertSee($team->documents_drive_url);
 
     $this->actingAs($admin)
         ->get(TeamMemberResource::getUrl('index'))
         ->assertOk()
-        ->assertSee(route('dashboard.team.documents', $team));
+        ->assertDontSee($team->documents_drive_url);
+
+    $this->actingAs($admin)
+        ->get(TeamMemberResource::getUrl('view', ['record' => $member]))
+        ->assertOk()
+        ->assertSee($team->documents_drive_url);
 
     $this->actingAs($admin)
         ->get(TeamMemberResource::getUrl('edit', ['record' => $member]))
         ->assertOk()
         ->assertDontSee('KTM URL')
-        ->assertDontSee('ImageKit file ID');
+        ->assertDontSee('Legacy file ID');
 });
 
 test('participants cannot access team and member filament resources', function () {

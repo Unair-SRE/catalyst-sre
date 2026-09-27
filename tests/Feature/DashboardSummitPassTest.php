@@ -1,7 +1,10 @@
 <?php
 
-use App\Livewire\Dashboard\Overview;
+use App\Enums\SummitOrderStatus;
+use App\Enums\SummitTicketStatus;
 use App\Livewire\Dashboard\SummitPass;
+use App\Models\PaymentSetting;
+use App\Models\SummitOrder;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -9,77 +12,88 @@ use Livewire\Livewire;
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
-    $this->actingAs(User::factory()->create());
+    $this->buyer = User::factory()->create(['name' => 'Alya Buyer']);
+    $this->actingAs($this->buyer);
+
+    PaymentSetting::query()->create([
+        'contact_person_name' => 'Catalyst Contact',
+        'contact_person_whatsapp' => '081200000000',
+        'summit_ticket_price' => '150000.00',
+        'is_active' => true,
+    ]);
 });
 
-test('summit pass route renders and marks its navigation active', function () {
+test('summit pass route renders the database-backed purchase form', function () {
     $this->get(route('dashboard.summit-pass.index'))
         ->assertOk()
         ->assertSee('Your access to Catalyst Summit Talkshow and Exhibition')
-        ->assertSee('aria-current="page"', false);
+        ->assertSee('Google Drive proof')
+        ->assertSee('aria-current="page"', false)
+        ->assertDontSee('Prototype state');
 });
 
-test('no-pass state presents the purchase call to action and one-pass rule', function () {
+test('buyer can submit an unlimited-size multi-ticket order with its own drive folder', function () {
+    $holders = collect(range(1, 12))->map(fn (int $number): string => 'Holder '.$number)->all();
+
     Livewire::test(SummitPass::class)
-        ->assertSee('Experience Catalyst Summit')
-        ->assertSee('Get Summit Pass')
-        ->assertSee('Each account can purchase one non-transferable pass');
-});
-
-test('purchase state renders attendee and payment flow', function () {
-    Livewire::test(SummitPass::class)
-        ->set('scenario', 'purchase')
-        ->assertSee('Attendee Information')
-        ->assertSee('Summit Pass Information')
-        ->assertSee(asset('images/payment/qris-catalyst.png'))
-        ->assertSee('Submit Purchase');
-});
-
-test('summit pass review states render their intended outcomes', function (string $scenario, string $expected, string $notExpected = '') {
-    $component = Livewire::test(SummitPass::class)
-        ->set('scenario', $scenario)
-        ->assertSee($expected);
-
-    if ($notExpected !== '') {
-        $component->assertDontSee($notExpected);
-    }
-})->with([
-    'payment waiting without ticket QR' => ['payment_waiting', 'Payment under review', 'Ticket QR Placeholder'],
-    'rejected with reason' => ['rejected', 'The uploaded payment proof could not be verified.', 'Your Summit Pass is ready'],
-    'verified ticket' => ['verified', 'Ticket QR Placeholder'],
-    'checked-in ticket' => ['checked_in', 'You’re checked in for Catalyst Summit'],
-]);
-
-test('purchase submission changes only the component-local prototype state', function () {
-    Livewire::test(SummitPass::class)
-        ->set('scenario', 'purchase')
-        ->call('selectProof', [
-            'name' => 'payment.jpg',
-            'type' => 'image/jpeg',
-            'size_bytes' => 512_000,
-        ])
-        ->call('openConfirmation')
-        ->assertSet('showConfirm', true)
+        ->set('holderNames', $holders)
+        ->set('senderName', 'Alya Sender')
+        ->set('driveUrl', 'https://drive.google.com/drive/folders/summit-order-proof')
+        ->set('documentsConfirmed', true)
         ->call('submitPurchase')
-        ->assertSet('status', 'WAITING_VERIFICATION')
-        ->assertSee('Payment under review');
+        ->assertHasNoErrors()
+        ->assertSet('showPurchaseForm', false)
+        ->assertSee('Payment under review')
+        ->assertSee('12 ticket(s)');
+
+    $order = SummitOrder::query()->with('tickets')->sole();
+
+    expect($order->user_id)->toBe($this->buyer->id)
+        ->and($order->quantity)->toBe(12)
+        ->and($order->total_amount)->toBe('1800000.00')
+        ->and($order->sender_name)->toBe('Alya Sender')
+        ->and($order->payment_drive_url)->toBe('https://drive.google.com/drive/folders/summit-order-proof')
+        ->and($order->payment_submitted_at)->not->toBeNull()
+        ->and($order->payment_status)->toBe(SummitOrderStatus::WaitingVerification)
+        ->and($order->tickets)->toHaveCount(12)
+        ->and($order->tickets->pluck('status')->unique()->all())->toBe([SummitTicketStatus::WaitingVerification]);
 });
 
-test('summit payment prototype rejects non-image proof metadata', function () {
+test('summit payment requires a google drive folder rather than a file link', function () {
     Livewire::test(SummitPass::class)
-        ->set('scenario', 'purchase')
-        ->call('selectProof', [
-            'name' => 'payment.pdf',
-            'type' => 'application/pdf',
-            'size_bytes' => 512_000,
-        ])
-        ->assertHasErrors('payment.proof')
-        ->assertSet('payment.proof', null);
+        ->set('holderNames', ['Alya'])
+        ->set('senderName', 'Alya Sender')
+        ->set('driveUrl', 'https://drive.google.com/file/d/payment-proof/view')
+        ->set('documentsConfirmed', true)
+        ->call('submitPurchase')
+        ->assertHasErrors('driveUrl');
+
+    expect(SummitOrder::query()->count())->toBe(0);
 });
 
-test('overview summit pass calls to action resolve to the real route', function () {
-    Livewire::test(Overview::class)
-        ->assertSee(route('dashboard.summit-pass.index', ['scenario' => 'no_pass']))
-        ->set('scenario', 'active_participant')
-        ->assertSee(route('dashboard.summit-pass.index', ['scenario' => 'verified']));
+test('buyer can create another independent order without belonging to a team', function () {
+    Livewire::test(SummitPass::class)
+        ->set('holderNames', ['First Holder'])
+        ->set('senderName', 'First Sender')
+        ->set('driveUrl', 'https://drive.google.com/drive/folders/first-order')
+        ->set('documentsConfirmed', true)
+        ->call('submitPurchase');
+
+    Livewire::test(SummitPass::class)
+        ->call('startPurchase')
+        ->set('holderNames', ['Second Holder', 'Third Holder'])
+        ->set('senderName', 'Second Sender')
+        ->set('driveUrl', 'https://drive.google.com/drive/folders/second-order')
+        ->set('documentsConfirmed', true)
+        ->call('submitPurchase')
+        ->assertHasNoErrors();
+
+    expect(SummitOrder::query()->where('user_id', $this->buyer->id)->count())->toBe(2);
+});
+
+test('sales are disabled when summit pricing is not configured', function () {
+    PaymentSetting::query()->update(['is_active' => false]);
+
+    Livewire::test(SummitPass::class)
+        ->assertSee('Summit ticket sales are not open');
 });

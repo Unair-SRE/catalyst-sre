@@ -1,35 +1,21 @@
 <?php
 
+use App\Actions\Summit\ConfirmSummitDrivePayment;
 use App\Actions\Summit\CreateSummitOrder;
 use App\Actions\Summit\RejectSummitOrder;
-use App\Actions\Summit\SubmitSummitPaymentProof;
 use App\Actions\Summit\VerifySummitOrder;
-use App\Contracts\SummitPaymentStorage;
-use App\Contracts\SummitTicketStorage;
 use App\Enums\SummitOrderStatus;
 use App\Enums\SummitTicketStatus;
-use App\Enums\UserRole;
 use App\Models\PaymentSetting;
 use App\Models\SummitOrder;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\ValidationException;
-use Tests\Fakes\FakeSummitPaymentStorage;
-use Tests\Fakes\FakeSummitTicketStorage;
 
 uses(RefreshDatabase::class);
 
 beforeEach(function () {
-    $storage = new FakeSummitPaymentStorage;
-    $this->app->instance(SummitPaymentStorage::class, $storage);
-    $this->paymentStorage = $storage;
-
-    $ticketStorage = new FakeSummitTicketStorage;
-    $this->app->instance(SummitTicketStorage::class, $ticketStorage);
-    $this->ticketStorage = $ticketStorage;
-
     PaymentSetting::query()->create([
         'contact_person_name' => 'Catalyst Contact',
         'contact_person_whatsapp' => '081200000000',
@@ -38,79 +24,52 @@ beforeEach(function () {
     ]);
 });
 
-function summitOrderFixture(User $buyer): SummitOrder
+function driveSummitOrder(User $buyer): SummitOrder
 {
-    return app(CreateSummitOrder::class)->handle($buyer, ['Alya', 'Bima']);
-}
+    $order = app(CreateSummitOrder::class)->handle($buyer, ['Alya', 'Bima']);
 
-function summitAdmin(): User
-{
-    return User::factory()->create([
-        'email_verified_at' => now(),
-        'role' => UserRole::Admin,
-    ]);
-}
-
-test('a buyer can submit one proof and the order moves to verification', function () {
-    $buyer = User::factory()->create(['email_verified_at' => now()]);
-    $order = summitOrderFixture($buyer);
-
-    $result = app(SubmitSummitPaymentProof::class)->handle(
+    return app(ConfirmSummitDrivePayment::class)->handle(
         $buyer,
         $order,
-        ' Buyer Sender ',
-        UploadedFile::fake()->create('proof.jpg', 100, 'image/jpeg'),
+        'Buyer Sender',
+        'https://drive.google.com/drive/folders/summit-payment-proof',
+        true,
     );
+}
+
+test('a buyer submits one drive folder and the order moves to verification', function () {
+    $buyer = User::factory()->create();
+    $result = driveSummitOrder($buyer);
 
     expect($result->payment_status)->toBe(SummitOrderStatus::WaitingVerification)
         ->and($result->sender_name)->toBe('Buyer Sender')
-        ->and($result->hasProof())->toBeTrue()
+        ->and($result->hasPaymentFolder())->toBeTrue()
         ->and($result->tickets->pluck('status')->unique()->all())
-        ->toBe([SummitTicketStatus::WaitingVerification])
-        ->and($this->paymentStorage->uploaded)->toHaveCount(1);
+        ->toBe([SummitTicketStatus::WaitingVerification]);
 });
 
-test('a proof cannot be submitted twice for the same order', function () {
-    $buyer = User::factory()->create(['email_verified_at' => now()]);
-    $order = summitOrderFixture($buyer);
-    $proof = fn () => UploadedFile::fake()->create('proof.jpg', 100, 'image/jpeg');
+test('an admin approval activates tickets without external file storage', function () {
+    $buyer = User::factory()->create();
+    $order = driveSummitOrder($buyer);
+    $admin = User::factory()->admin()->create();
 
-    app(SubmitSummitPaymentProof::class)->handle($buyer, $order, 'Sender', $proof());
-    app(SubmitSummitPaymentProof::class)->handle($buyer, $order, 'Sender', $proof());
-})->throws(ValidationException::class);
-
-test('a proof must be a jpg jpeg or png no larger than five megabytes', function (UploadedFile $file) {
-    $buyer = User::factory()->create(['email_verified_at' => now()]);
-    $order = summitOrderFixture($buyer);
-
-    app(SubmitSummitPaymentProof::class)->handle($buyer, $order, 'Sender', $file);
-})->with([
-    'pdf' => fn () => UploadedFile::fake()->create('proof.pdf', 100, 'application/pdf'),
-    'too large' => fn () => UploadedFile::fake()->create('proof.png', 5121, 'image/png'),
-])->throws(ValidationException::class);
-
-test('an admin approval activates every ticket in the order', function () {
-    $buyer = User::factory()->create(['email_verified_at' => now()]);
-    $order = summitOrderFixture($buyer);
-    app(SubmitSummitPaymentProof::class)->handle(
-        $buyer, $order, 'Sender', UploadedFile::fake()->create('proof.jpg', 100, 'image/jpeg'),
-    );
-
-    $result = app(VerifySummitOrder::class)->handle(summitAdmin(), $order);
+    $result = app(VerifySummitOrder::class)->handle($admin, $order);
 
     expect($result->payment_status)->toBe(SummitOrderStatus::Verified)
-        ->and($result->verified_by)->not->toBeNull()
+        ->and($result->verified_by)->toBe($admin->id)
         ->and($result->verified_at)->not->toBeNull()
         ->and($result->tickets->pluck('status')->unique()->all())->toBe([SummitTicketStatus::Active]);
+
+    foreach ($result->tickets as $ticket) {
+        expect($ticket->pdf_url)->toBeNull()
+            ->and($ticket->pdf_file_id)->toBeNull();
+    }
 });
 
 test('a repeated approval is a harmless no-op', function () {
-    $buyer = User::factory()->create(['email_verified_at' => now()]);
-    $order = summitOrderFixture($buyer);
-    app(SubmitSummitPaymentProof::class)->handle(
-        $buyer, $order, 'Sender', UploadedFile::fake()->create('proof.jpg', 100, 'image/jpeg'),
-    );
-    $admin = summitAdmin();
+    $buyer = User::factory()->create();
+    $order = driveSummitOrder($buyer);
+    $admin = User::factory()->admin()->create();
 
     $first = app(VerifySummitOrder::class)->handle($admin, $order);
     $second = app(VerifySummitOrder::class)->handle($admin, $order);
@@ -120,49 +79,37 @@ test('a repeated approval is a harmless no-op', function () {
         ->and($order->tickets()->count())->toBe(2);
 });
 
-test('an order without proof cannot be approved', function () {
-    $buyer = User::factory()->create(['email_verified_at' => now()]);
-    $order = summitOrderFixture($buyer);
+test('an order without a drive payment folder cannot be approved', function () {
+    $buyer = User::factory()->create();
+    $order = app(CreateSummitOrder::class)->handle($buyer, ['Alya']);
 
-    app(VerifySummitOrder::class)->handle(summitAdmin(), $order);
+    app(VerifySummitOrder::class)->handle(User::factory()->admin()->create(), $order);
 })->throws(ValidationException::class);
 
 test('a rejection closes the order and every ticket', function () {
-    $buyer = User::factory()->create(['email_verified_at' => now()]);
-    $order = summitOrderFixture($buyer);
-    app(SubmitSummitPaymentProof::class)->handle(
-        $buyer, $order, 'Sender', UploadedFile::fake()->create('proof.jpg', 100, 'image/jpeg'),
+    $buyer = User::factory()->create();
+    $order = driveSummitOrder($buyer);
+
+    $result = app(RejectSummitOrder::class)->handle(
+        User::factory()->admin()->create(),
+        $order,
+        'The Drive folder cannot be opened.',
     );
 
-    $result = app(RejectSummitOrder::class)->handle(summitAdmin(), $order);
-
     expect($result->payment_status)->toBe(SummitOrderStatus::Rejected)
+        ->and($result->review_note)->toBe('The Drive folder cannot be opened.')
         ->and($result->tickets->pluck('status')->unique()->all())->toBe([SummitTicketStatus::Rejected]);
 });
 
-test('an approval generates one private pdf per ticket', function () {
-    $buyer = User::factory()->create(['email_verified_at' => now()]);
-    $order = summitOrderFixture($buyer);
-    app(SubmitSummitPaymentProof::class)->handle(
-        $buyer, $order, 'Sender', UploadedFile::fake()->create('proof.jpg', 100, 'image/jpeg'),
-    );
+test('a non-owner cannot submit a drive folder for another user order', function () {
+    $buyer = User::factory()->create();
+    $order = app(CreateSummitOrder::class)->handle($buyer, ['Alya']);
 
-    $result = app(VerifySummitOrder::class)->handle(summitAdmin(), $order);
-
-    expect($this->ticketStorage->stored)->toHaveCount(2);
-
-    foreach ($result->tickets as $ticket) {
-        expect($ticket->pdf_url)->toContain('/catalyst/summit-tickets/')
-            ->and($ticket->pdf_file_id)->not->toBeEmpty();
-    }
-});
-
-test('a non-owner cannot submit proof for someone else order', function () {
-    $buyer = User::factory()->create(['email_verified_at' => now()]);
-    $order = summitOrderFixture($buyer);
-    $outsider = User::factory()->create(['email_verified_at' => now()]);
-
-    app(SubmitSummitPaymentProof::class)->handle(
-        $outsider, $order, 'Sender', UploadedFile::fake()->create('proof.jpg', 100, 'image/jpeg'),
+    app(ConfirmSummitDrivePayment::class)->handle(
+        User::factory()->create(),
+        $order,
+        'Sender',
+        'https://drive.google.com/drive/folders/not-my-order',
+        true,
     );
 })->throws(AuthorizationException::class);

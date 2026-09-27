@@ -15,8 +15,9 @@ class PaymentFactory extends Factory
         return [
             'registration_id' => Registration::factory(),
             'sender_name' => fake()->name(),
-            'payment_proof_url' => 'https://ik.imagekit.io/catalyst/competition-payments/'.fake()->uuid().'.jpg',
-            'payment_proof_file_id' => fake()->uuid(),
+            'payment_proof_url' => null,
+            'payment_proof_file_id' => null,
+            'documents_submitted_at' => now(),
             'status' => PaymentStatus::WaitingVerification,
         ];
     }
