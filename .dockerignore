@@ -3,6 +3,7 @@
 .env.*
 !.env.example
 database/database.sqlite
+public/hot
 node_modules
 tests
 vendor
