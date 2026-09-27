@@ -11,7 +11,7 @@
             <section class="border border-catalyst-grey/30 p-5 sm:p-6">
                 <h2 class="font-display text-xl font-semibold">Captain</h2>
                 <p class="mt-3">{{ auth()->user()->name }}</p>
-                <p class="text-sm text-catalyst-muted">{{ auth()->user()->email }} ? {{ auth()->user()->whatsapp }}</p>
+                <p class="text-sm text-catalyst-muted">{{ auth()->user()->email }} &middot; {{ auth()->user()->whatsapp }}</p>
                 <a class="mt-3 inline-block text-sm text-catalyst-primary underline" href="{{ route('dashboard.profile.index') }}">Update captain profile</a>
             </section>
             <form wire:submit="{{ $team ? 'saveTeam' : 'createTeam' }}" class="space-y-6 border border-catalyst-grey/30 bg-white p-5 sm:p-6">
@@ -27,6 +27,7 @@
                     <label class="block text-sm font-medium">Team Google Drive folder
                         <input class="mt-2 w-full border border-catalyst-grey/50 px-3 py-3" type="url" wire:model="documentsDriveUrl" placeholder="https://drive.google.com/drive/folders/..." required maxlength="2048">
                     </label>
+                    <label class="flex items-start gap-3 text-sm leading-6"><input class="mt-1" type="checkbox" wire:model="documentsAccessConfirmed" required><span>I confirm this folder is set to <strong>Anyone with the link</strong> as <strong>Viewer</strong>.</span></label>
                     <div class="flex items-center justify-between gap-4"><h2 class="font-display text-xl font-semibold">Members (optional)</h2>
                         @if (count($setupMembers) < 2)<button class="border border-catalyst-primary px-4 py-2 text-sm" type="button" wire:click="addSetupMember">+ Add member</button>@endif
                     </div>
@@ -44,12 +45,13 @@
                     <h2 class="font-display text-xl font-semibold">Team documents</h2>
                     <x-dashboard.drive-instructions />
                     @if ($team->hasDocumentsFolder())
-                        <a class="inline-flex text-catalyst-primary underline" href="{{ route('dashboard.team.documents', $team) }}" target="_blank" rel="noopener noreferrer">Open team folder</a>
+                        <a class="inline-flex text-catalyst-primary underline" href="{{ $team->documents_drive_url }}" target="_blank" rel="noopener noreferrer">Open team folder</a>
                         <p class="text-sm text-catalyst-muted">Folder link saved. This does not mean the documents have been verified.</p>
                     @endif
                     @if (! $team->isLocked() || ! $team->documents_drive_url)
                         <form wire:submit="saveFolder" class="space-y-4">
                             <label class="block text-sm font-medium">Google Drive folder link<input class="mt-2 w-full border border-catalyst-grey/50 px-3 py-3" type="url" wire:model="documentsDriveUrl" required maxlength="2048" placeholder="https://drive.google.com/drive/folders/..."></label>
+                            <label class="flex items-start gap-3 text-sm leading-6"><input class="mt-1" type="checkbox" wire:model="documentsAccessConfirmed" required><span>I confirm this folder is set to <strong>Anyone with the link</strong> as <strong>Viewer</strong>.</span></label>
                             <button class="bg-catalyst-primary px-4 py-3 text-sm text-white" wire:loading.attr="disabled">Save folder</button>
                         </form>
                     @else
@@ -63,7 +65,7 @@
                             @if ($editingMemberId === $member->id && ! $team->isLocked())
                                 <form wire:submit="updateMember" class="space-y-4"><x-dashboard.member-fields prefix="editMemberForm" /><button class="bg-catalyst-primary px-4 py-2 text-white">Save member</button><button type="button" class="ml-3 text-sm" wire:click="cancelEditingMember">Cancel</button></form>
                             @else
-                                <p class="font-semibold">{{ $member->name }}</p><p class="text-sm text-catalyst-muted">{{ $member->email }} ? {{ $member->whatsapp }}</p>
+                                <p class="font-semibold">{{ $member->name }}</p><p class="text-sm text-catalyst-muted">{{ $member->email }} &middot; {{ $member->whatsapp }}</p>
                                 @if (! $team->isLocked())<div class="flex gap-4"><button class="text-sm text-catalyst-primary" type="button" wire:click="startEditingMember({{ $member->id }})">Edit</button><button class="text-sm text-status-error-ink" type="button" wire:click="removeMember({{ $member->id }})" wire:confirm="Remove this member?">Remove</button></div>@endif
                             @endif
                         </article>

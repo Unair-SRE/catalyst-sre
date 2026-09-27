@@ -23,7 +23,7 @@ class EditTeam extends EditRecord
                 if ($folder === '') {
                     throw ValidationException::withMessages(['data.documents_drive_url' => 'Replace the folder with a valid link instead of removing it.']);
                 }
-                app(UpdateDriveFolder::class)->handle(Auth::user(), $record, $folder);
+                app(UpdateDriveFolder::class)->handle(Auth::user(), $record, $folder, true);
             }
             $record->update(['name' => trim($data['name']), 'institution' => trim($data['institution'])]);
 

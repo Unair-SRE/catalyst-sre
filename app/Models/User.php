@@ -11,6 +11,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail as MustVerifyEmailContract;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -55,6 +56,11 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmailContr
     public function captainedTeam(): HasOne
     {
         return $this->hasOne(Team::class, 'captain_id');
+    }
+
+    public function summitOrders(): HasMany
+    {
+        return $this->hasMany(SummitOrder::class);
     }
 
     public function hasCompleteKtm(): bool

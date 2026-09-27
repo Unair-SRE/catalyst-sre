@@ -89,7 +89,7 @@
 
                 <fieldset class="min-w-0 border-t border-catalyst-grey/30 bg-white pt-5 pb-3 sm:pt-6" @disabled(! $state['form_editable'])>
                     <legend class="px-1 font-display text-xl font-semibold tracking-tight">Registration Folder</legend>
-                    <p class="mt-3 text-sm leading-6 text-catalyst-ink/75">Upload all required registration documents to one Google Drive folder. Make sure the official Catalyst account has Viewer access before submitting your registration. Do not make the folder publicly accessible.</p>
+                    <p class="mt-3 text-sm leading-6 text-catalyst-ink/75">Upload all required registration documents to one Google Drive folder. Before submitting, set General access to <strong>Anyone with the link</strong> and select <strong>Viewer</strong>.</p>
                     <label class="mt-5 block text-sm font-medium">Google Drive Folder URL<input class="mt-2 w-full border border-catalyst-grey/50 bg-white px-3 py-3 text-sm focus:border-catalyst-primary focus:outline-none disabled:bg-catalyst-grey/10" type="url" wire:model="form.drive_url">@error('form.drive_url') <span class="mt-1 block text-sm text-status-error-ink">{{ $message }}</span> @enderror</label>
                 </fieldset>
 

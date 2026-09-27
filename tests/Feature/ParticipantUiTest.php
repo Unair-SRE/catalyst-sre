@@ -90,7 +90,7 @@ test('registration detail blocks incomplete teams and creates a real registratio
         ->assertDontSee('Register this team');
 
     $team->captain->update([
-        'ktm_url' => 'https://ik.imagekit.io/catalyst/ktm/captain.jpg',
+        'ktm_url' => 'https://example.test/legacy-ktm/captain.jpg',
         'ktm_file_id' => 'captain-ktm',
     ]);
     $team->update(['documents_drive_url' => 'https://drive.google.com/drive/folders/team']);

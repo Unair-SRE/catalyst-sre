@@ -46,10 +46,7 @@ class Payment extends Model
 
     public function hasProof(): bool
     {
-        if ($this->documents_submitted_at !== null) {
-            return $this->registration->team->hasDocumentsFolder();
-        }
-
-        return filled($this->payment_proof_url) && filled($this->payment_proof_file_id);
+        return $this->documents_submitted_at !== null
+            && $this->registration->team->hasDocumentsFolder();
     }
 }

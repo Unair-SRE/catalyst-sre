@@ -6,6 +6,6 @@
         <li>KTM_Anggota1_Name.pdf and KTM_Anggota2_Name.pdf (if applicable)</li>
         <li>Bukti_Bayar_MCC.jpg, Bukti_Bayar_BCC.jpg, or Bukti_Bayar_BPC.jpg</li>
     </ul>
-    <p>In Google Drive, open Share and add <strong>{{ config('services.catalyst.documents_reviewer_email') }}</strong> as <strong>Viewer</strong>. Copy the folder link, not a link to an individual file.</p>
+    <p>In Google Drive, open <strong>Share</strong>, change General access to <strong>Anyone with the link</strong>, and select <strong>Viewer</strong>. Copy the folder link, not a link to an individual file.</p>
     <p>After adding the payment proof, confirm it on the competition payment page. Folder contents are checked manually by the committee.</p>
 </div>

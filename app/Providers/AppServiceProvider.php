@@ -2,14 +2,6 @@
 
 namespace App\Providers;
 
-use App\Contracts\CompetitionPaymentStorage;
-use App\Contracts\KtmStorage;
-use App\Contracts\SummitPaymentStorage;
-use App\Contracts\SummitTicketStorage;
-use App\Services\ImageKitCompetitionPaymentStorage;
-use App\Services\ImageKitKtmStorage;
-use App\Services\ImageKitSummitPaymentStorage;
-use App\Services\ImageKitSummitTicketStorage;
 use Illuminate\Foundation\Console\ServeCommand;
 use Illuminate\Foundation\DevCommands;
 use Illuminate\Support\Facades\File;
@@ -22,10 +14,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->bind(CompetitionPaymentStorage::class, ImageKitCompetitionPaymentStorage::class);
-        $this->app->bind(KtmStorage::class, ImageKitKtmStorage::class);
-        $this->app->bind(SummitPaymentStorage::class, ImageKitSummitPaymentStorage::class);
-        $this->app->bind(SummitTicketStorage::class, ImageKitSummitTicketStorage::class);
+        // Participant documents and payment proofs live in their respective
+        // Google Drive folders. Summit ticket PDFs are rendered on demand.
     }
 
     /**

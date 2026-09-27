@@ -9,14 +9,15 @@ use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class RejectSummitOrder
 {
-    public function handle(User $admin, SummitOrder $order): SummitOrder
+    public function handle(User $admin, SummitOrder $order, ?string $reviewNote = null): SummitOrder
     {
         Gate::forUser($admin)->authorize('verify', $order);
 
-        return DB::transaction(function () use ($admin, $order): SummitOrder {
+        return DB::transaction(function () use ($admin, $order, $reviewNote): SummitOrder {
             $lockedOrder = SummitOrder::query()
                 ->with('tickets')
                 ->lockForUpdate()
@@ -26,8 +27,15 @@ class RejectSummitOrder
                 return $lockedOrder;
             }
 
+            if ($lockedOrder->payment_status !== SummitOrderStatus::WaitingVerification) {
+                throw ValidationException::withMessages([
+                    'order' => 'Only a Summit payment waiting for verification can be rejected.',
+                ]);
+            }
+
             $lockedOrder->update([
                 'payment_status' => SummitOrderStatus::Rejected,
+                'review_note' => filled($reviewNote) ? trim($reviewNote) : null,
                 'verified_by' => $admin->id,
                 'verified_at' => now(),
             ]);

@@ -36,6 +36,8 @@ test('main event uses registration and resource destinations with the approved p
         ->assertOk()
         ->assertSee(route('register'))
         ->assertSee(route('pre-event-1.index'))
+        ->assertSee(route('dashboard.summit-pass.index'))
+        ->assertDontSee('data-link-todo="summit-pass"', false)
         ->assertSee('data-link-todo="mcc-guidebook"', false)
         ->assertSee('href="https://instagram.com/catalyst.sreunair/"', false)
         ->assertSee('images/brand/hero-mainevent.png', false)
