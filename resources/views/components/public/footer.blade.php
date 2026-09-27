@@ -1,5 +1,5 @@
 @php
-    $guidebookUrl = config('services.catalyst.guidebook_url');
+    $mainEventUrl = route('main-event.index');
     $groups = [
         'Explore' => [
             ['label' => 'Home', 'url' => route('home')],
@@ -8,18 +8,18 @@
             ['label' => 'Catalyst Summit', 'url' => route('main-event.index')],
         ],
         'Competition' => [
-            ['label' => 'MCC', 'url' => null],
-            ['label' => 'BCC', 'url' => null],
-            ['label' => 'BPC', 'url' => null],
+            ['label' => 'MCC', 'url' => $mainEventUrl.'#competitions'],
+            ['label' => 'BCC', 'url' => $mainEventUrl.'#competitions'],
+            ['label' => 'BPC', 'url' => $mainEventUrl.'#competitions'],
         ],
         'Resource' => [
-            ['label' => 'Guidebooks', 'url' => $guidebookUrl, 'external' => true],
-            ['label' => 'FAQ', 'url' => null],
-            ['label' => 'Timeline', 'url' => null],
+            ['label' => 'Guidebooks', 'url' => $mainEventUrl.'#guidebook'],
+            ['label' => 'FAQ', 'url' => $mainEventUrl.'#faq'],
+            ['label' => 'Timeline', 'url' => $mainEventUrl.'#timeline'],
         ],
         'Connect' => [
-            ['label' => 'Instagram', 'url' => null],
-            ['label' => 'Contact', 'url' => null],
+            ['label' => 'Instagram', 'url' => 'https://instagram.com/catalyst.sreunair/', 'external' => true],
+            ['label' => 'Contact', 'url' => $mainEventUrl.'#faq'],
             ['label' => 'SRE UNAIR', 'url' => null],
         ],
     ];

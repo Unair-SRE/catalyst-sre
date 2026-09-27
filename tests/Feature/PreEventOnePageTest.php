@@ -31,6 +31,7 @@ test('pre event one reuses the public motion and navigation contracts', function
         ->assertSee('data-navbar-theme="light"', false)
         ->assertSee('data-navbar-theme="dark"', false)
         ->assertSee('images/icon/arrow-down-icon-mainevent.svg', false)
+        ->assertSee('images/brand/hero-pe1.jpg', false)
         ->assertSee('data-timeline-state=', false)
         ->assertSee('data-link-todo="mentorship-guidebook"', false)
         ->assertSee('data-content-todo="mentorship-documentation"', false)

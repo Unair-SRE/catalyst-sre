@@ -4,8 +4,8 @@
 
 @section('content')
     @php
-        $guidebookUrl = config('services.catalyst.guidebook_url');
         $nowWib = \Carbon\CarbonImmutable::now('Asia/Jakarta');
+        $instagramUrl = 'https://instagram.com/catalyst.sreunair/';
 
         $schedule = [
             'green-action' => ['start' => '2026-09-13 00:00:00', 'end' => '2026-09-13 23:59:59', 'name' => 'Green Action', 'description' => 'Confirmed Catalyst pre-event milestone.'],
@@ -106,9 +106,31 @@
         ];
 
         $guidebooks = [
-            ['code' => 'MCC', 'name' => 'Mini Case Competition'],
-            ['code' => 'BCC', 'name' => 'Business Case Competition'],
-            ['code' => 'BPC', 'name' => 'Business Plan Competition'],
+            ['code' => 'MCC', 'name' => 'Mini Case Competition', 'url' => 'https://drive.google.com/drive/folders/1ZrM4_5GdXbj-MgPlj_hqkIpScZ0Z5VpK?usp=sharing', 'todo' => true],
+            ['code' => 'BCC', 'name' => 'Business Case Competition', 'url' => $instagramUrl, 'todo' => false],
+            ['code' => 'BPC', 'name' => 'Business Plan Competition', 'url' => $instagramUrl, 'todo' => false],
+        ];
+
+        $partnerLogos = [
+            ['name' => 'BEM FST Universitas Airlangga', 'image' => 'images/brand/logo-partner-bemfst.png'],
+            ['name' => 'HIMAFI', 'image' => 'images/brand/logo-partner-himafi.jpg'],
+            ['name' => 'HIMATEK HIKHAN', 'image' => 'images/brand/logo-partner-himatekhikhan.jpg'],
+            ['name' => 'HIMATESDA', 'image' => 'images/brand/logo-partner-himatesda.png'],
+            ['name' => 'HIMSI', 'image' => 'images/brand/logo-partner-himsi.jpg'],
+            ['name' => 'HMA', 'image' => 'images/brand/logo-partner-hma.png'],
+            ['name' => 'HME UA', 'image' => 'images/brand/logo-partner-hmeua.png'],
+            ['name' => 'HMTL', 'image' => 'images/brand/logo-partner-hmtl.png'],
+            ['name' => 'TRKB', 'image' => 'images/brand/logo-partner-trkb.png'],
+        ];
+
+        $faqs = [
+            ['What is Catalyst Summit 2026?', 'Catalyst Summit is a national innovation platform by SRE Universitas Airlangga that brings students, mentors, practitioners, industry players, and stakeholders together around renewable energy and sustainability.'],
+            ['What are the three phases of Catalyst?', 'Catalyst consists of three phases: Catalyst Mentorship Track, Catalyst Green Action, and the Catalyst Summit Main Event. Each phase focuses on a different part of the journey, from learning and environmental action to competition and showcase.'],
+            ['Who can take part in Catalyst?', 'Catalyst is designed for students interested in renewable energy, sustainability, business, technology, entrepreneurship, and social innovation. Eligibility differs between programs and competitions, so check the relevant event or competition page before joining.'],
+            ['What competitions are available at Catalyst Summit?', 'Catalyst Summit features three competition tracks: Mini Case Competition (MCC), Business Case Competition (BCC), and Business Plan Competition (BPC).'],
+            ['Where can I find the complete rules and requirements?', 'Each competition has its own official guidebook containing eligibility, timelines, submission requirements, scoring criteria, and competition rules.'],
+            ['How do I stay updated on Catalyst?', 'Important updates are shared through Catalyst’s official communication channels. Competition participants should also monitor the email address used during registration.'],
+            ['Where does Catalyst Summit take place?', 'The final Catalyst Summit experience will be held at Universitas Airlangga, Surabaya. More detailed event-day information will be shared closer to the event.'],
         ];
 
         $people = [
@@ -144,7 +166,7 @@
             </x-ui.container>
 
             <figure class="relative h-72 overflow-hidden sm:h-96 lg:h-[26.25rem]" data-navbar-theme="light">
-                <img class="size-full origin-bottom scale-125 object-cover object-bottom sm:scale-110 lg:scale-100" src="{{ asset('images/brand/footer-image.webp') }}" width="1440" height="700" fetchpriority="high" decoding="async" alt="Solar panels beneath an open sky">
+                <img class="size-full origin-bottom scale-125 object-cover object-center sm:scale-110 lg:scale-100" src="{{ asset('images/brand/hero-home.png') }}" width="1440" height="420" fetchpriority="high" decoding="async" alt="Solar panels viewed from above">
                 <div class="pointer-events-none absolute inset-0 bg-gradient-to-b from-catalyst-ink/5 via-transparent to-catalyst-ink/20" aria-hidden="true"></div>
             </figure>
         </section>
@@ -156,9 +178,11 @@
                     <h2 id="partners-title" class="mt-5 font-display text-3xl font-semibold tracking-tight text-catalyst-ink sm:text-4xl">Partners behind Catalyst Summit 2026.</h2>
                 </header>
 
-                <div class="mt-10 grid grid-cols-2 border-l border-t border-catalyst-grey/30 sm:grid-cols-3 lg:mt-12 lg:grid-cols-5" aria-label="Partner logos to be announced" data-reveal>
-                    @foreach (range(1, 10) as $partner)
-                        <div class="flex min-h-24 items-center justify-center border-b border-r border-catalyst-grey/30 px-4 py-6 text-center text-xs font-semibold uppercase tracking-[0.14em] text-catalyst-grey sm:min-h-28">Partner logo</div>
+                <div class="mt-10 grid grid-cols-2 border-l border-t border-catalyst-grey/30 sm:grid-cols-3 lg:mt-12 lg:grid-cols-5" aria-label="Catalyst Summit partner logos" data-reveal>
+                    @foreach ($partnerLogos as $partner)
+                        <div class="flex min-h-32 items-center justify-center border-b border-r border-catalyst-grey/30 bg-white px-5 py-6 sm:min-h-36">
+                            <img class="max-h-20 w-full max-w-36 object-contain" src="{{ asset($partner['image']) }}" width="144" height="80" loading="lazy" decoding="async" alt="{{ $partner['name'] }} logo">
+                        </div>
                     @endforeach
                 </div>
             </x-ui.container>
@@ -291,7 +315,7 @@
                                     <span class="inline-flex items-center gap-2"><img class="size-3.5" src="{{ asset('images/icon/member-icon-competition.svg') }}" width="14" height="14" alt="">{{ $competition['members'] }}</span>
                                     <span class="inline-flex items-center gap-2"><img class="size-3.5" src="{{ asset('images/icon/prizepool-icon-whyparticipate.svg') }}" width="14" height="14" alt="">{{ $competition['prize'] }}</span>
                                 </div>
-                                <a class="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-catalyst-primary" href="{{ route('competitions.index') }}">Explore {{ $competition['code'] }}<x-public.link-arrow /></a>
+                                <a class="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-catalyst-primary" href="{{ route('register') }}">Register for {{ $competition['code'] }}<x-public.link-arrow /></a>
                             </div>
                         </article>
                     @endforeach
@@ -385,8 +409,8 @@
                             <p class="mt-2 text-sm text-catalyst-muted">{{ $guidebook['name'] }}</p>
                             <a
                                 class="mt-auto inline-flex items-center gap-2 self-start pt-8 text-base text-catalyst-primary"
-                                href="{{ $guidebookUrl ?: '#guidebook' }}"
-                                @if ($guidebookUrl) target="_blank" rel="noopener noreferrer" @else aria-disabled="true" data-link-todo="{{ strtolower($guidebook['code']) }}-guidebook" title="Guidebook URL to be confirmed" @endif
+                                href="{{ $guidebook['url'] }}"
+                                @if ($guidebook['todo']) aria-disabled="true" data-link-todo="mcc-guidebook" title="MCC guidebook URL to be confirmed" @else target="_blank" rel="noopener noreferrer" @endif
                             >Open guidebook<x-public.link-arrow external /></a>
                         </article>
                     @endforeach
@@ -428,48 +452,66 @@
         <section class="bg-white py-10 sm:py-14" data-navbar-theme="dark" aria-labelledby="partnership-title">
             <x-ui.container>
                 <div class="home-partnership relative isolate overflow-hidden" data-reveal>
-                    <img class="absolute inset-0 -z-20 size-full object-cover object-center" src="{{ asset('images/brand/footer-image.webp') }}" width="1440" height="700" loading="lazy" decoding="async" alt="">
+                    <img class="absolute inset-0 -z-20 size-full object-cover object-center" src="{{ asset('images/brand/partnership-home.png') }}" width="620" height="405" loading="lazy" decoding="async" alt="Hands gathered around a newly planted seedling">
                     <div class="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-r from-white via-white/95 to-white/65 sm:to-white/45 lg:to-white/10" aria-hidden="true"></div>
                     <div class="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-white/35 via-transparent to-white/30" aria-hidden="true"></div>
                     <div class="relative max-w-3xl p-7 sm:p-10 lg:p-14">
                         <x-public.section-label>Partner with Catalyst</x-public.section-label>
                         <h2 id="partnership-title" class="mt-5 font-display text-3xl font-semibold leading-tight tracking-tight text-catalyst-ink sm:text-4xl">Interested in collaborating with Catalyst Summit 2026?</h2>
                         <p class="mt-4 max-w-2xl text-base leading-7 text-catalyst-muted">Partner with a national platform connecting young innovators, mentors, industry players, practitioners, and stakeholders in renewable energy.</p>
-                        <div class="mt-8 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
-                            <span class="inline-flex min-h-12 items-center gap-2 bg-catalyst-primary px-5 py-3 text-sm font-semibold text-white opacity-60" role="link" aria-disabled="true" data-link-todo="partnership-contact">
-                                Explore Partnership Opportunities
-                                <img class="size-4 brightness-0 invert" src="{{ asset('images/icon/arrow-icon-diagonal.svg') }}" width="16" height="16" alt="">
-                            </span>
-                            <p class="text-sm text-catalyst-muted">Partnership contact destination is being finalized.</p>
-                        </div>
+                       <div class="mt-8 flex flex-col items-start gap-4 sm:flex-row sm:items-center">
+    <a
+        class="inline-flex min-h-12 items-center gap-2 bg-catalyst-primary px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-catalyst-green"
+        href="https://instagram.com/catalyst.sreunair/"
+        target="_blank"
+        rel="noopener noreferrer"
+    >
+        Explore Partnership Opportunities
+        <img
+            class="size-4 brightness-0 invert"
+            src="{{ asset('images/icon/arrow-icon-diagonal.svg') }}"
+            width="16"
+            height="16"
+            alt=""
+        >
+    </a>
+
+    <p class="text-sm text-catalyst-muted">
+        For partnership inquiries, contact the Catalyst team.
+    </p>
+</div>
                     </div>
                 </div>
             </x-ui.container>
         </section>
 
-        <section class="bg-white py-16 sm:py-24 lg:py-28" data-navbar-theme="dark" aria-labelledby="faq-title">
+        <section id="faq" class="scroll-mt-32 bg-white py-16 sm:py-24 lg:py-28" data-navbar-theme="dark" aria-labelledby="faq-title">
             <x-ui.container>
                 <x-public.section-label>FAQ</x-public.section-label>
                 <div class="mt-6 grid gap-12 lg:grid-cols-12 lg:gap-16" data-reveal>
                     <div class="lg:col-span-4">
                         <h2 id="faq-title" class="font-display text-4xl font-semibold leading-tight tracking-tight text-catalyst-ink sm:text-5xl">Questions<br>before you join?</h2>
-                        {{-- TODO: Replace this clearly marked prototype contact with the confirmed Catalyst contact person. --}}
-                        <div class="mt-12 text-sm leading-6 text-catalyst-muted sm:mt-28" data-content-todo="contact-person">
-                            <p class="font-semibold text-catalyst-ink">Contact person</p>
-                            <p class="mt-2">Alya Putri</p>
-                            <p>+62 812-3456-7890</p>
-                            <p class="mt-2 text-xs">Prototype contact — replace before launch.</p>
+                        <div class="mt-12 text-sm leading-6 text-catalyst-muted sm:mt-28">
+                            <p class="font-semibold text-catalyst-ink">Main Event Contact person</p>
+                            <p class="mt-2">Florecita</p>
+                            <p>0813-3664-4639</p>
+                            <p class="font-semibold text-catalyst-ink">Competition Contact person</p>
+                            <p class="mt-2">Tya</p>
+                            <p>0817-7239-2924</p>
+                            <p class="mt-2">Shifa</p>
+                            <p>0818-500-851</p>
                         </div>
                     </div>
-                    <div class="lg:col-span-8">
-                        <details class="group border-b border-catalyst-grey/30 py-5" open>
-                            <summary class="flex min-h-11 list-none items-center justify-between gap-6 font-display text-lg font-medium text-catalyst-ink [&::-webkit-details-marker]:hidden sm:text-xl">
-                                What is Catalyst 2026?
-                                <span class="relative size-4 shrink-0" aria-hidden="true"><span class="absolute left-0 top-1/2 h-px w-4 bg-current"></span><span class="absolute left-1/2 top-0 h-4 w-px bg-current transition-transform group-open:rotate-90 group-open:opacity-0"></span></span>
-                            </summary>
-                            <p class="max-w-2xl pb-2 pr-8 pt-4 text-base leading-7 text-catalyst-muted">Catalyst 2026 is a connected journey of pre-events, mentorship, competitions, and a final showcase for young changemakers in renewable energy.</p>
-                        </details>
-                        <div class="border-b border-catalyst-grey/30 py-5 text-base text-catalyst-grey" data-content-todo="faq">More frequently asked questions are coming soon.</div>
+                    <div class="border-t border-catalyst-grey/30 lg:col-span-8">
+                        @foreach ($faqs as [$question, $answer])
+                            <details class="group border-b border-catalyst-grey/30" @if ($loop->first) open @endif>
+                                <summary class="flex min-h-20 list-none items-center justify-between gap-6 py-5 text-left font-display text-lg font-semibold text-catalyst-ink [&::-webkit-details-marker]:hidden sm:text-xl">
+                                    <span>{{ $question }}</span>
+                                    <span class="relative size-4 shrink-0" aria-hidden="true"><span class="absolute left-0 top-1/2 h-px w-4 bg-current"></span><span class="absolute left-1/2 top-0 h-4 w-px bg-current transition-transform group-open:rotate-90 group-open:opacity-0"></span></span>
+                                </summary>
+                                <p class="max-w-2xl pb-6 pr-8 text-base leading-7 text-catalyst-muted">{{ $answer }}</p>
+                            </details>
+                        @endforeach
                     </div>
                 </div>
             </x-ui.container>
