@@ -28,7 +28,7 @@
                 <header class="border-catalyst-grey/30 border-b bg-white lg:hidden">
                     <div class="flex min-h-16 items-center justify-between px-5 sm:px-6">
                         <a class="inline-flex items-center gap-3 font-display text-sm font-semibold tracking-wide focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-catalyst-primary" href="{{ route('dashboard.index') }}">
-                            <span class="grid size-9 place-items-center rounded-full bg-catalyst-primary font-sans text-sm font-bold text-white" aria-hidden="true">C</span>
+                            <img class="h-10 w-auto shrink-0" src="{{ asset('images/brand/catalyst-mark.png') }}" width="22" height="40" alt="" aria-hidden="true">
                             <span>Catalyst 2026</span>
                         </a>
 
