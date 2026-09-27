@@ -53,20 +53,17 @@ test('public shell exposes the approved navigation and footer information archit
         ->assertSee('Guidebook')
         ->assertSee('Register Now')
         ->assertSee(route('register'))
-        ->assertSee('data-link-todo="guidebook"', false)
+        ->assertSee('href="'.route('main-event.index').'#guidebook"', false)
         ->assertSee('images/brand/footer-image.webp', false)
         ->assertSeeInOrder(['Explore', 'Competition', 'Resource', 'Connect'])
         ->assertSee('Kebijakan Privasi')
         ->assertSee('Syarat dan Ketentuan');
 });
 
-test('configured guidebook URL is rendered as a safe external link', function () {
-    config(['services.catalyst.guidebook_url' => 'https://example.com/catalyst-guidebook']);
-
+test('navbar guidebook link targets the main event resource section', function () {
     $this->get(route('home'))
         ->assertOk()
-        ->assertSee('href="https://example.com/catalyst-guidebook"', false)
-        ->assertSee('target="_blank" rel="noopener noreferrer"', false);
+        ->assertSee('href="'.route('main-event.index').'#guidebook"', false);
 });
 
 test('homepage renders the Catalyst marketing journey in the approved public shell', function () {
@@ -89,7 +86,8 @@ test('homepage renders the Catalyst marketing journey in the approved public she
         ])
         ->assertSee('data-navbar-theme="dark"', false)
         ->assertSee('data-navbar-theme="light"', false)
-        ->assertSee('images/brand/footer-image.webp', false)
+        ->assertSee('images/brand/hero-home.png', false)
+        ->assertSee('images/brand/partnership-home.png', false)
         ->assertDontSee('placehold.co', false);
 });
 
@@ -99,7 +97,7 @@ test('homepage calls to action use existing named public routes', function () {
         ->assertSee('href="'.route('pre-event-1.index').'"', false)
         ->assertSee('href="'.route('pre-event-2.index').'"', false)
         ->assertSee('href="'.route('main-event.index').'"', false)
-        ->assertSee('href="'.route('competitions.index').'"', false);
+        ->assertSee('href="'.route('register').'"', false);
 });
 
 test('homepage directed revisions render the shared icons anchors and motion hooks', function () {
@@ -115,14 +113,18 @@ test('homepage directed revisions render the shared icons anchors and motion hoo
         ->assertSee('home-horizon__light--right', false)
         ->assertSee('data-reveal', false)
         ->assertSee('home-people-marquee__track', false)
-        ->assertSee('Prototype contact — replace before launch.')
+        ->assertSee('Florecita')
+        ->assertSee('What are the three phases of Catalyst?')
+        ->assertSee('Where does Catalyst Summit take place?')
+        ->assertSee('logo-partner-bemfst.png', false)
         ->assertDontSee('Explore Pre-Event 1')
         ->assertDontSee('Explore Pre-Event 2');
 
     expect(substr_count($response->getContent(), 'Open guidebook'))->toBe(3)
         ->and(substr_count($response->getContent(), 'data-timeline-state='))->toBe(20)
         ->and(substr_count($response->getContent(), 'home-horizon__word'))->toBe(1)
-        ->and(substr_count($response->getContent(), 'home-about-stat'))->toBe(3);
+        ->and(substr_count($response->getContent(), 'home-about-stat'))->toBe(3)
+        ->and(substr_count($response->getContent(), 'logo-partner-'))->toBe(9);
 });
 
 test('public typography uses the licensed PP Mori font assets with real weights', function () {
@@ -148,6 +150,27 @@ test('homepage competition states use the Catalyst schedule in WIB', function ()
     } finally {
         CarbonImmutable::setTestNow();
     }
+});
+
+test('public navigation destinations match the current website architecture', function () {
+    $response = $this->get(route('home'))->assertOk();
+
+    foreach (['competitions', 'guidebook', 'faq', 'timeline'] as $section) {
+        $response->assertSee('href="'.route('main-event.index').'#'.$section.'"', false);
+    }
+
+    $response
+        ->assertSee('href="https://instagram.com/catalyst.sreunair/"', false)
+        ->assertSee('href="'.route('register').'"', false);
+});
+
+test('active competition cards animate only the Catalyst border angle', function () {
+    $css = file_get_contents(resource_path('css/app.css'));
+
+    expect($css)
+        ->toContain('@property --home-active-border-angle')
+        ->toContain('from var(--home-active-border-angle)')
+        ->toContain('to { --home-active-border-angle: 360deg; }');
 });
 
 test('homepage closes competition registration after the configured WIB windows', function () {

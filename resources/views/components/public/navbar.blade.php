@@ -5,7 +5,7 @@
         ['label' => 'Main Event', 'route' => 'main-event.index', 'active' => 'main-event.*'],
     ];
 
-    $guidebookUrl = config('services.catalyst.guidebook_url');
+    $guidebookUrl = route('main-event.index').'#guidebook';
     $registerUrl = Route::has('register') ? route('register') : null;
 @endphp
 
@@ -36,11 +36,7 @@
         </nav>
 
         <div class="hidden shrink-0 items-center gap-3 lg:flex">
-            @if ($guidebookUrl)
-                <a class="public-navbar__secondary inline-flex min-h-12 items-center justify-center border px-4 py-3.5 text-sm font-medium" href="{{ $guidebookUrl }}" target="_blank" rel="noopener noreferrer">Guidebook</a>
-            @else
-                <span class="public-navbar__secondary inline-flex min-h-12 items-center justify-center border px-4 py-3.5 text-sm font-medium opacity-60" role="link" aria-disabled="true" data-link-todo="guidebook" title="Guidebook URL to be confirmed">Guidebook</span>
-            @endif
+            <a class="public-navbar__secondary inline-flex min-h-12 items-center justify-center border px-4 py-3.5 text-sm font-medium" href="{{ $guidebookUrl }}">Guidebook</a>
 
             @if ($registerUrl)
                 <a class="public-navbar__primary inline-flex min-h-12 items-center justify-center bg-catalyst-primary px-4 py-3.5 text-sm font-medium text-white" href="{{ $registerUrl }}">Register Now</a>
@@ -49,7 +45,7 @@
             @endif
         </div>
 
-        <details class="group relative lg:hidden" data-public-navbar-menu>
+        <details class="group lg:hidden" data-public-navbar-menu>
             <summary class="public-navbar__toggle flex size-11 list-none items-center justify-center [&::-webkit-details-marker]:hidden" data-public-navbar-toggle aria-label="Open navigation" aria-expanded="false">
                 <svg class="size-6 group-open:hidden" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
                     <path d="M4 7h16M4 12h16M4 17h16" />
@@ -59,7 +55,7 @@
                 </svg>
             </summary>
 
-            <div class="public-navbar__mobile-panel absolute right-0 top-14 w-[calc(100vw-2.5rem)] max-w-sm border border-catalyst-ink/10 bg-white p-3 text-catalyst-ink shadow-lg shadow-catalyst-ink/5">
+            <div class="public-navbar__mobile-panel absolute inset-x-0 top-[calc(100%+0.125rem)] w-full border border-catalyst-ink/10 bg-white p-3 text-catalyst-ink shadow-lg shadow-catalyst-ink/5">
                 <nav class="flex flex-col" aria-label="Mobile navigation">
                     @foreach ($navigation as $item)
                         @php($isActive = request()->routeIs($item['active']))
@@ -74,11 +70,7 @@
                 </nav>
 
                 <div class="mt-3 grid gap-2 border-t border-catalyst-ink/10 pt-3 sm:grid-cols-2">
-                    @if ($guidebookUrl)
-                        <a class="inline-flex min-h-11 items-center justify-center border border-catalyst-primary px-4 py-2.5 text-sm font-medium text-catalyst-primary" href="{{ $guidebookUrl }}" target="_blank" rel="noopener noreferrer">Guidebook</a>
-                    @else
-                        <span class="inline-flex min-h-11 items-center justify-center border border-catalyst-primary px-4 py-2.5 text-sm font-medium text-catalyst-primary opacity-60" role="link" aria-disabled="true" data-link-todo="guidebook">Guidebook</span>
-                    @endif
+                    <a class="inline-flex min-h-11 items-center justify-center border border-catalyst-primary px-4 py-2.5 text-sm font-medium text-catalyst-primary" href="{{ $guidebookUrl }}">Guidebook</a>
 
                     @if ($registerUrl)
                         <a class="inline-flex min-h-11 items-center justify-center bg-catalyst-primary px-4 py-2.5 text-sm font-medium text-white" href="{{ $registerUrl }}">Register Now</a>

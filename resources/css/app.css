@@ -74,6 +74,12 @@
 }
 
 /* Shared public shell and dashboard interactions; page composition stays in Blade utilities. */
+@property --home-active-border-angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+}
+
 @layer components {
     .public-navbar {
         position: fixed;
@@ -228,17 +234,22 @@
     .home-competition-card--active::before {
         content: '';
         position: absolute;
-        z-index: -1;
-        inset: -2px;
+        z-index: 0;
+        inset: -1px;
+        padding: 2px;
         background: conic-gradient(
-            from 0deg,
+            from var(--home-active-border-angle),
             var(--color-catalyst-primary),
-            color-mix(in srgb, var(--color-catalyst-primary) 62%, var(--color-catalyst-ink)),
+            var(--color-catalyst-green),
             var(--color-catalyst-lime),
             var(--color-catalyst-primary)
         );
+        -webkit-mask:
+            linear-gradient(#fff 0 0) content-box,
+            linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
         pointer-events: none;
-        will-change: transform;
         animation: home-active-border 7s linear infinite;
     }
     .home-timeline__grid {
@@ -505,7 +516,7 @@
     }
 
     @keyframes home-active-border {
-        to { transform: rotate(1turn); }
+        to { --home-active-border-angle: 360deg; }
     }
     @keyframes home-people-marquee {
         to { transform: translateX(-50%); }

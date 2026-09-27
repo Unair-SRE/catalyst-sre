@@ -24,9 +24,12 @@
         ];
 
         $highlightImages = [
-            ['images/brand/footer-image.webp', 'object-left'],
-            ['images/brand/footer-image.webp', 'object-center'],
-            ['images/brand/footer-image.webp', 'object-right'],
+            'images/brand/highlight-1-pe2.webp',
+            'images/brand/highlight-2-pe2.webp',
+            'images/brand/highlight-3-pe2.webp',
+            'images/brand/highlight-4-pe2.webp',
+            'images/brand/highlight-5-pe2.webp',
+            'images/brand/highlight-6-pe2.webp',
         ];
     @endphp
 
@@ -36,7 +39,7 @@
             data-navbar-theme="light"
             aria-labelledby="pre-event-two-hero-title"
         >
-            <img class="absolute inset-0 size-full scale-105 object-cover object-center" src="{{ asset('images/brand/footer-image.webp') }}" width="1440" height="700" fetchpriority="high" decoding="async" alt="">
+            <img class="absolute inset-0 size-full scale-105 object-cover object-center" src="{{ asset('images/brand/hero-pe2.webp') }}" width="5184" height="3456" fetchpriority="high" decoding="async" alt="Participants taking environmental action in a mangrove area">
             <div class="absolute inset-0 bg-[linear-gradient(180deg,rgba(23,33,38,.18)_0%,rgba(23,33,38,.38)_42%,rgba(10,26,27,.92)_100%)]" aria-hidden="true"></div>
 
             <x-ui.container class="relative z-10 w-full">
@@ -83,14 +86,8 @@
             </x-ui.container>
 
             <figure class="mt-12" data-reveal>
-                {{-- TODO: Replace this branded fallback with approved Green Action programme photography. --}}
-                <div class="relative grid min-h-72 place-items-center overflow-hidden bg-[radial-gradient(circle_at_72%_36%,rgba(198,211,79,.72),transparent_22%),linear-gradient(115deg,#006d6a_0%,#6ab266_52%,#f7f9f7_100%)] px-6 text-center sm:min-h-96 lg:min-h-[34rem]" data-content-todo="green-action-programme-photography">
-                    <div class="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-catalyst-ink/35 to-transparent" aria-hidden="true"></div>
-                    <div class="relative text-white">
-                        <img class="mx-auto h-20 w-auto brightness-0 invert" src="{{ asset('images/brand/catalyst-mark.png') }}" width="44" height="80" loading="lazy" decoding="async" alt="">
-                        <p class="mt-5 font-display text-sm font-semibold tracking-[0.12em]">SYNERGY · CATALYST GREEN ACTION</p>
-                        <p class="mt-2 text-xs text-white/80">Official programme photography coming soon</p>
-                    </div>
+                <div class="relative min-h-72 overflow-hidden sm:min-h-96 lg:min-h-[34rem]">
+                    <img class="absolute inset-0 size-full object-cover object-center" src="{{ asset('images/brand/synergy-pe2.webp') }}" width="5184" height="3456" loading="lazy" decoding="async" alt="Catalyst Green Action participants working together in a mangrove area">
                 </div>
                 <x-ui.container><figcaption class="mt-5 max-w-3xl text-sm leading-6 text-catalyst-muted sm:text-base sm:leading-7">SYNERGY brings young people and environmental action together through restoration, shared learning, and practical participation in a greener future.</figcaption></x-ui.container>
             </figure>
@@ -114,6 +111,15 @@
                 </ol>
             </x-ui.container>
         </section>
+
+<x-public.event-poster-section
+    eyebrow="OFFICIAL POSTER"
+    title="Catalyst Green Action 2026"
+    description="View the official poster for Catalyst Green Action, including the event theme, location, date, participation details, and event benefits."
+    image="images/brand/poster-green-action.webp"
+    image-alt="Official Catalyst Green Action 2026 poster"
+    metadata="Catalyst Green Action 2026"
+/>
 
         <section class="bg-white py-16 sm:py-20 lg:py-24" data-navbar-theme="dark" aria-labelledby="green-action-glance-title">
             <x-ui.container>
@@ -168,14 +174,13 @@
                 </header>
             </x-ui.container>
 
-            {{-- TODO: Replace the temporary project photography with approved Green Action documentation. --}}
-            <div class="home-people-marquee mt-12 lg:mt-16" data-reveal data-content-todo="green-action-documentation" aria-label="Green Action event highlights">
+            <div class="home-people-marquee mt-12 lg:mt-16" data-reveal aria-label="Green Action event highlights">
                 <div class="home-people-marquee__track">
                     @foreach ([false, true] as $duplicate)
                         <div class="home-people-marquee__group" @if ($duplicate) aria-hidden="true" @endif>
-                            @foreach ($highlightImages as [$image, $position])
+                            @foreach ($highlightImages as $image)
                                 <figure class="aspect-[925/600] w-[78vw] min-w-[18rem] max-w-[57.8125rem] shrink-0 overflow-hidden">
-                                    <img class="size-full {{ $position }} object-cover" src="{{ asset($image) }}" width="925" height="600" loading="lazy" decoding="async" alt="">
+                                    <img class="size-full object-cover object-center" src="{{ asset($image) }}" width="925" height="600" loading="lazy" decoding="async" alt="Catalyst Green Action activity highlight {{ $loop->iteration }}">
                                 </figure>
                             @endforeach
                         </div>

@@ -23,7 +23,7 @@
             <aside class="relative hidden min-h-screen overflow-hidden bg-catalyst-neutral lg:block" aria-hidden="true">
                 <img
                     class="absolute inset-0 size-full object-cover object-center"
-                    src="{{ asset('images/brand/footer-image.webp') }}"
+                    src="{{ asset('images/brand/auth-image.webp') }}"
                     width="1440"
                     height="700"
                     alt=""

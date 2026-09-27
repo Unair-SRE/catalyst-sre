@@ -43,11 +43,7 @@
             ['Judge', 'Final Pitch Judge'],
         ];
 
-        $highlightImages = [
-            ['images/brand/footer-image.webp', 'object-left'],
-            ['images/brand/footer-image.webp', 'object-center'],
-            ['images/brand/footer-image.webp', 'object-right'],
-        ];
+        $highlightPlaceholders = range(1, 3);
     @endphp
 
     <div class="home-page overflow-clip" data-pre-event-one-page>
@@ -56,7 +52,7 @@
             data-navbar-theme="light"
             aria-labelledby="pre-event-one-hero-title"
         >
-            <img class="absolute inset-0 size-full scale-105 object-cover object-center" src="{{ asset('images/brand/footer-image.webp') }}" width="1440" height="700" fetchpriority="high" decoding="async" alt="">
+            <img class="absolute inset-0 size-full scale-105 object-cover object-center" src="{{ asset('images/brand/hero-pe1.jpg') }}" width="735" height="490" fetchpriority="high" decoding="async" alt="Catalyst Mentorship Track participants in an outdoor group session">
             <div class="absolute inset-0 bg-[linear-gradient(180deg,rgba(23,33,38,.18)_0%,rgba(23,33,38,.38)_42%,rgba(10,26,27,.92)_100%)]" aria-hidden="true"></div>
 
             <x-ui.container class="relative z-10 w-full">
@@ -134,6 +130,15 @@
                 </ol>
             </x-ui.container>
         </section>
+
+        <x-public.event-poster-section
+    eyebrow="OFFICIAL POSTER"
+    title="Catalyst Mentorship Track 2026"
+    description="View the official poster for Catalyst Mentorship Track, featuring the program overview, timeline, participant criteria, benefits, and registration information."
+    image="images/brand/poster-catalyst-mentorship-track.webp"
+    image-alt="Official Catalyst Mentorship Track 2026 poster"
+    metadata="Catalyst Mentorship Track 2026"
+/>
 
         <section class="bg-white py-16 sm:py-24 lg:py-28" data-navbar-theme="dark" aria-labelledby="pre-event-timeline-title">
             <x-ui.container>
@@ -220,17 +225,45 @@
 
             {{-- TODO: Replace the temporary project photography with approved Mentorship Track documentation. --}}
             <div class="home-people-marquee mt-12 lg:mt-16" data-reveal data-content-todo="mentorship-documentation" aria-label="Mentorship Track event highlights">
-                <div class="home-people-marquee__track">
-                    @foreach ([false, true] as $duplicate)
-                        <div class="home-people-marquee__group" @if ($duplicate) aria-hidden="true" @endif>
-                            @foreach ($highlightImages as [$image, $position])
-                                <figure class="aspect-[925/600] w-[78vw] min-w-[18rem] max-w-[57.8125rem] shrink-0 overflow-hidden">
-                                    <img class="size-full {{ $position }} object-cover" src="{{ asset($image) }}" width="925" height="600" loading="lazy" decoding="async" alt="">
-                                </figure>
-                            @endforeach
+               <div class="home-people-marquee__track">
+    @foreach ([false, true] as $duplicate)
+        <div class="home-people-marquee__group" @if ($duplicate) aria-hidden="true" @endif>
+            @foreach ($highlightPlaceholders as $highlightPlaceholder)
+                <figure class="aspect-[925/600] w-[78vw] min-w-[18rem] max-w-[57.8125rem] shrink-0 overflow-hidden">
+                    <div
+                        class="relative grid size-full place-items-center overflow-hidden bg-[radial-gradient(circle_at_72%_36%,rgba(198,211,79,.72),transparent_22%),linear-gradient(115deg,#006d6a_0%,#6ab266_52%,#f7f9f7_100%)] px-6 text-center"
+                        data-content-todo="programme-highlight-photography"
+                    >
+                        <div
+                            class="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-catalyst-ink/35 to-transparent"
+                            aria-hidden="true"
+                        ></div>
+
+                        <div class="relative text-white">
+                            <img
+                                class="mx-auto h-16 w-auto brightness-0 invert"
+                                src="{{ asset('images/brand/catalyst-mark.png') }}"
+                                width="35"
+                                height="64"
+                                loading="lazy"
+                                decoding="async"
+                                alt=""
+                            >
+
+                            <p class="mt-5 font-display text-sm font-semibold tracking-[0.12em]">
+                                HELIOS · CATALYST MENTORSHIP TRACK
+                            </p>
+
+                            <p class="mt-2 text-xs text-white/80">
+                                Official programme photography coming soon
+                            </p>
                         </div>
-                    @endforeach
-                </div>
+                    </div>
+                </figure>
+            @endforeach
+        </div>
+    @endforeach
+</div>
             </div>
 
             <x-ui.container>

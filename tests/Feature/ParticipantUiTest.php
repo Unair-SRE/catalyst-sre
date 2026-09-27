@@ -11,6 +11,7 @@ use App\Models\Registration;
 use App\Models\Team;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Route;
 use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
@@ -24,19 +25,10 @@ test('participant authentication pages render complete forms', function () {
     $this->actingAs($user)->get('/email/verify')->assertOk()->assertSee('Verification code')->assertSee('Resend code');
 });
 
-test('public competition catalog handles empty and database states', function () {
-    $this->get(route('competitions.index'))->assertOk()->assertSee('Competition information is coming soon');
+test('public competition catalog route has been retired in favor of registration', function () {
+    expect(Route::has('competitions.index'))->toBeFalse();
 
-    Competition::factory()->code(CompetitionCode::MiniCase)->create([
-        'description' => 'A database-backed public description.',
-        'registration_open' => true,
-    ]);
-
-    $this->get(route('competitions.index'))
-        ->assertOk()
-        ->assertSee('Mini Case Competition')
-        ->assertSee('A database-backed public description.')
-        ->assertSee('Create account to register');
+    $this->get('/competitions')->assertNotFound();
 });
 
 test('registration index displays real registration and payment states', function () {
