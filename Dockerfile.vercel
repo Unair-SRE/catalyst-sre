@@ -43,4 +43,4 @@ RUN composer dump-autoload --optimize \
     && php artisan package:discover --ansi \
     && php artisan filament:upgrade --ansi
 
-COPY Caddyfile /etc/caddy/Caddyfile
+COPY Caddyfile /etc/frankenphp/Caddyfile
