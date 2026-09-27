@@ -36,15 +36,8 @@ return [
     ],
 
     'catalyst' => [
-        'documents_reviewer_email' => env('CATALYST_DOCUMENTS_REVIEWER_EMAIL', 'unair@sre.co.id'),
         'guidebook_url' => env('CATALYST_GUIDEBOOK_URL'),
         'qris_asset' => 'images/payment/qris-catalyst.png',
-    ],
-
-    'imagekit' => [
-        'url_endpoint' => env('IMAGEKIT_URL_ENDPOINT'),
-        'public_key' => env('IMAGEKIT_PUBLIC_KEY'),
-        'private_key' => env('IMAGEKIT_PRIVATE_KEY'),
     ],
 
 ];

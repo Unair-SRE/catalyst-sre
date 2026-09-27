@@ -14,11 +14,15 @@ use Illuminate\Validation\ValidationException;
 
 class UpdateDriveFolder
 {
-    public function handle(User $actor, Team $team, string $url): Team
+    public function handle(User $actor, Team $team, string $url, bool $accessConfirmed): Team
     {
         abort_unless($actor->isAdmin() || $team->captain_id === $actor->id, 403);
-        Validator::make(['documents_drive_url' => $url], [
+        Validator::make([
+            'documents_drive_url' => $url,
+            'documents_access_confirmed' => $accessConfirmed,
+        ], [
             'documents_drive_url' => ['required', 'string', 'max:2048', new GoogleDriveFolder],
+            'documents_access_confirmed' => ['accepted'],
         ])->validate();
 
         return DB::transaction(function () use ($actor, $team, $url): Team {

@@ -13,7 +13,7 @@
             </section>
             <x-dashboard.drive-instructions />
             @if ($payment->registration->team->hasDocumentsFolder())
-                <a class="inline-flex text-catalyst-primary underline" href="{{ route('dashboard.team.documents', $payment->registration->team) }}" target="_blank" rel="noopener noreferrer">Open team folder</a>
+                <a class="inline-flex text-catalyst-primary underline" href="{{ $payment->registration->team->documents_drive_url }}" target="_blank" rel="noopener noreferrer">Open team folder</a>
             @else
                 <p class="text-sm">Add your team folder before confirming payment.</p><a class="text-catalyst-primary underline" href="{{ route('dashboard.team.index') }}">Manage team folder</a>
             @endif
@@ -23,7 +23,7 @@
                     <img class="mx-auto max-h-72 w-full object-contain" src="{{ asset(config('services.catalyst.qris_asset')) }}" alt="Catalyst payment QRIS">
                     <p class="text-sm">Add <strong>Bukti_Bayar_{{ strtoupper($competition) }}.jpg</strong> (or PDF/PNG) to the same team folder. @if ($payment->status === \App\Enums\PaymentStatus::Rejected)Correct the documents or sharing permissions mentioned by the committee before submitting again.@endif</p>
                     <label class="block text-sm font-medium">Sender name<input class="mt-2 w-full border border-catalyst-grey/50 px-3 py-3" wire:model="senderName" required maxlength="120"></label>
-                    <label class="flex items-start gap-3 text-sm leading-6"><input class="mt-1" type="checkbox" wire:model="documentsConfirmed" required><span>I have added all KTM files and this competition's payment proof to the team folder and shared Viewer access with {{ config('services.catalyst.documents_reviewer_email') }}.</span></label>
+                    <label class="flex items-start gap-3 text-sm leading-6"><input class="mt-1" type="checkbox" wire:model="documentsConfirmed" required><span>I have added all KTM files and this competition's payment proof to the team folder, then set access to <strong>Anyone with the link</strong> as <strong>Viewer</strong>.</span></label>
                     <button class="bg-catalyst-primary px-4 py-3 text-sm text-white disabled:opacity-50" type="submit" wire:loading.attr="disabled" @disabled(! $payment->registration->team->hasDocumentsFolder()) wire:confirm="Submit these documents for review? Team details will be locked.">{{ $payment->status ? 'Resubmit corrected documents' : 'Payment proof added ? submit for review' }}</button>
                 </form>
             @elseif ($payment->status === \App\Enums\PaymentStatus::Verified)

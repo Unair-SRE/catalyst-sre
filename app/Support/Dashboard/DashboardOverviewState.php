@@ -267,7 +267,7 @@ final class DashboardOverviewState
                         'stage' => $action['stage'] ?? 'stage-1',
                     ])
                     : ($action['type'] === 'payment_required' && ($action['payment_context'] ?? null) === 'summit_pass'
-                        ? route('dashboard.summit-pass.index', ['scenario' => 'purchase'])
+                        ? route('dashboard.summit-pass.index')
                         : null));
 
             return [
@@ -305,15 +305,7 @@ final class DashboardOverviewState
                 'DRAFT', 'PURCHASE', 'REJECTED' => 'Continue Purchase',
                 default => 'Get Summit Pass',
             },
-            'href' => route('dashboard.summit-pass.index', [
-                'scenario' => match ($state) {
-                    'WAITING_VERIFICATION' => 'payment_waiting',
-                    'VERIFIED' => 'verified',
-                    'CHECKED_IN' => 'checked_in',
-                    'DRAFT', 'PURCHASE', 'REJECTED' => 'purchase',
-                    default => 'no_pass',
-                },
-            ]),
+            'href' => route('dashboard.summit-pass.index'),
         ];
     }
 

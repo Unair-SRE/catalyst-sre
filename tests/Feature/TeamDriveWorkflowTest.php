@@ -10,7 +10,7 @@ use App\Actions\Teams\UpdateDriveFolder;
 use App\Enums\CompetitionCode;
 use App\Enums\PaymentStatus;
 use App\Enums\RegistrationStatus;
-use App\Filament\Resources\Payments\Pages\ListPayments;
+use App\Filament\Resources\Payments\Pages\ViewPayment;
 use App\Livewire\Dashboard\CompetitionPaymentForm;
 use App\Livewire\Dashboard\TeamManagement;
 use App\Models\Competition;
@@ -32,6 +32,7 @@ function driveTeam(): Team
     return app(CreateDriveTeam::class)->handle(User::factory()->create(), [
         'name' => 'Drive Team', 'institution' => 'Universitas Airlangga',
         'documents_drive_url' => 'https://drive.google.com/drive/folders/team-folder',
+        'documents_access_confirmed' => true,
     ]);
 }
 
@@ -58,16 +59,16 @@ test('Drive folder validation accepts folder sharing links and rejects other URL
 ]);
 
 test('a team and its members are saved with one folder and no file upload', function () {
-    config(['services.imagekit.public_key' => null, 'services.imagekit.private_key' => null]);
     $captain = User::factory()->create();
     Livewire::actingAs($captain)->test(TeamManagement::class)
         ->set('teamForm.name', 'Complete Team')->set('teamForm.institution', 'Unair')
         ->set('documentsDriveUrl', 'https://drive.google.com/drive/folders/team-folder')
+        ->set('documentsAccessConfirmed', true)
         ->call('addSetupMember')
         ->set('setupMembers.0.name', 'Member One')->set('setupMembers.0.email', 'member@example.test')
         ->set('setupMembers.0.whatsapp', '08123456789')
         ->call('createTeam')->assertHasNoErrors()->assertSee('Member One')
-        ->assertSee('unair@sre.co.id')->assertDontSee('type="file"', false);
+        ->assertSee('Anyone with the link')->assertDontSee('type="file"', false);
     $team = $captain->fresh()->captainedTeam;
     expect($team->hasDocumentsFolder())->toBeTrue()
         ->and($team->members()->count())->toBe(1)
@@ -83,6 +84,17 @@ test('incomplete setup is rejected atomically', function () {
     $this->assertDatabaseCount('teams', 0);
     $this->assertDatabaseCount('team_members', 0);
 });
+
+test('team folder submission requires anyone-with-link viewer confirmation', function () {
+    $captain = User::factory()->create();
+
+    app(CreateDriveTeam::class)->handle($captain, [
+        'name' => 'Private Folder Team',
+        'institution' => 'Unair',
+        'documents_drive_url' => 'https://drive.google.com/drive/folders/private-folder',
+        'documents_access_confirmed' => false,
+    ]);
+})->throws(ValidationException::class);
 
 test('one folder covers mini case and one main competition with separate confirmations', function () {
     $team = driveTeam();
@@ -140,7 +152,7 @@ test('folder replacement by admin invalidates previous Drive approvals', functio
     $admin = User::factory()->admin()->create();
     app(ConfirmDrivePayment::class)->handle($team->captain, $payment, 'Sender', true);
     app(VerifyCompetitionPayment::class)->handle($admin, $payment);
-    app(UpdateDriveFolder::class)->handle($admin, $team, 'https://drive.google.com/drive/folders/replacement');
+    app(UpdateDriveFolder::class)->handle($admin, $team, 'https://drive.google.com/drive/folders/replacement', true);
     expect($payment->fresh()->status)->toBe(PaymentStatus::WaitingVerification)
         ->and($payment->fresh()->verified_by)->toBeNull()
         ->and($payment->registration->fresh()->status)->toBe(RegistrationStatus::Pending);
@@ -150,12 +162,12 @@ test('a captain cannot replace a locked folder', function () {
     $payment = drivePayment();
     $team = $payment->registration->team;
     app(ConfirmDrivePayment::class)->handle($team->captain, $payment, 'Sender', true);
-    app(UpdateDriveFolder::class)->handle($team->captain, $team, 'https://drive.google.com/drive/folders/replacement');
+    app(UpdateDriveFolder::class)->handle($team->captain, $team, 'https://drive.google.com/drive/folders/replacement', true);
 })->throws(ValidationException::class, 'Contact the committee');
 
 test('legacy locked teams can supply their first folder', function () {
     $team = Team::factory()->locked()->create();
-    app(UpdateDriveFolder::class)->handle($team->captain, $team, 'https://drive.google.com/drive/folders/legacy');
+    app(UpdateDriveFolder::class)->handle($team->captain, $team, 'https://drive.google.com/drive/folders/legacy', true);
     expect($team->fresh()->hasDocumentsFolder())->toBeTrue();
 });
 
@@ -206,13 +218,13 @@ test('member IDs from another team cannot be edited and locked members cannot be
     app(SaveDriveTeamMember::class)->handle($team->captain, $team, ['name' => 'New', 'email' => 'new@example.test', 'whatsapp' => '08123']);
 })->throws(AuthorizationException::class);
 
-test('admin can request a correction using the payment table action', function () {
+test('admin can request a correction from the payment detail page', function () {
     $payment = drivePayment();
     app(ConfirmDrivePayment::class)->handle($payment->registration->team->captain, $payment, 'Sender', true);
     Livewire::actingAs(User::factory()->admin()->create())
-        ->test(ListPayments::class)
-        ->callTableAction('reject', $payment, data: ['review_note' => 'The captain KTM is missing.'])
-        ->assertHasNoTableActionErrors();
+        ->test(ViewPayment::class, ['record' => $payment->getRouteKey()])
+        ->callAction('reject', data: ['review_note' => 'The captain KTM is missing.'])
+        ->assertHasNoActionErrors();
     expect($payment->fresh()->status)->toBe(PaymentStatus::Rejected)
         ->and($payment->fresh()->review_note)->toBe('The captain KTM is missing.');
 });

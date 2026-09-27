@@ -24,6 +24,7 @@ class CreateDriveTeam
             'team.name' => ['required', 'string', 'max:120'],
             'team.institution' => ['required', 'string', 'max:160'],
             'team.documents_drive_url' => ['required', 'string', 'max:2048', new GoogleDriveFolder],
+            'team.documents_access_confirmed' => ['accepted'],
             'members' => ['array', 'max:2'],
             'members.*.name' => ['required', 'string', 'max:120'],
             'members.*.email' => ['required', 'email', 'max:255', 'distinct:ignore_case', new AvailableTeamEmail],

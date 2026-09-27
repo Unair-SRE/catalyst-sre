@@ -34,7 +34,7 @@ class CreateSummitOrder
             ->latest('id')
             ->first();
 
-        if ($setting === null || $setting->summit_ticket_price === null) {
+        if ($setting === null || $setting->summit_ticket_price === null || bccomp((string) $setting->summit_ticket_price, '0', 2) <= 0) {
             throw ValidationException::withMessages([
                 'order' => 'Summit ticket sales are not open yet.',
             ]);

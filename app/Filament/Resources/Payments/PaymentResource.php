@@ -2,27 +2,31 @@
 
 namespace App\Filament\Resources\Payments;
 
-use App\Actions\Payments\RejectCompetitionPayment;
-use App\Actions\Payments\VerifyCompetitionPayment;
 use App\Enums\PaymentStatus;
 use App\Filament\Resources\Payments\Pages\ListPayments;
+use App\Filament\Resources\Payments\Pages\ViewPayment;
 use App\Models\Payment;
 use BackedEnum;
-use Filament\Actions\Action;
-use Filament\Forms\Components\Textarea;
+use Filament\Actions\ViewAction;
+use Filament\Infolists\Components\RepeatableEntry;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
-use Illuminate\Support\Facades\Auth;
 
 class PaymentResource extends Resource
 {
     protected static ?string $model = Payment::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBanknotes;
+
+    protected static string|\UnitEnum|null $navigationGroup = 'Competition';
+
+    protected static ?int $navigationSort = 5;
 
     protected static ?string $navigationLabel = 'Competition Payments';
 
@@ -35,14 +39,10 @@ class PaymentResource extends Resource
     {
         return $table->columns([
             TextColumn::make('registration.team.name')->label('Team')->searchable()->sortable(),
-            TextColumn::make('registration.team.captain.name')->label('Captain')->searchable(),
             TextColumn::make('registration.competition.code')->label('Competition')->badge(),
             TextColumn::make('sender_name')->label('Sender')->placeholder('Not submitted'),
             TextColumn::make('status')->badge()->placeholder('NOT_SUBMITTED'),
             TextColumn::make('documents_submitted_at')->label('Documents submitted')->dateTime()->sortable(),
-            TextColumn::make('review_note')->label('Review note')->limit(60)->wrap(),
-            TextColumn::make('verified_at')->dateTime(),
-            TextColumn::make('verifier.name')->label('Reviewed by'),
         ])->filters([
             SelectFilter::make('status')->options([
                 PaymentStatus::WaitingVerification->value => 'Waiting verification',
@@ -50,31 +50,45 @@ class PaymentResource extends Resource
                 PaymentStatus::Rejected->value => 'Needs correction / rejected',
             ]),
         ])->recordActions([
-            Action::make('openFolder')->label('Open team folder')
-                ->icon(Heroicon::OutlinedFolderOpen)
-                ->url(fn (Payment $record): string => route('dashboard.team.documents', $record->registration->team))
-                ->openUrlInNewTab()
-                ->visible(fn (Payment $record): bool => $record->registration->team->hasDocumentsFolder()),
-            Action::make('viewDetails')->label('Review documents')
-                ->modalHeading('Review team KTM and competition payment')
-                ->modalContent(fn (Payment $record) => view('payment-details', [
-                    'payment' => $record->loadMissing(['registration.team.captain', 'registration.team.members', 'registration.competition', 'verifier']),
-                ]))
-                ->modalSubmitAction(false)->modalCancelActionLabel('Close'),
-            Action::make('approve')->label('Approve documents and payment')->color('success')
-                ->requiresConfirmation()
-                ->modalDescription('Confirm that the folder is accessible, every participant KTM is valid, and the payment proof matches this competition and fee.')
-                ->visible(fn (Payment $record): bool => $record->status === PaymentStatus::WaitingVerification)
-                ->action(fn (Payment $record) => app(VerifyCompetitionPayment::class)->handle(Auth::user(), $record)),
-            Action::make('reject')->label('Request correction')->color('danger')
-                ->form([Textarea::make('review_note')->label('What must the participant correct?')->required()->maxLength(2000)])
-                ->visible(fn (Payment $record): bool => $record->status === PaymentStatus::WaitingVerification)
-                ->action(fn (Payment $record, array $data) => app(RejectCompetitionPayment::class)->handle(Auth::user(), $record, $data['review_note'])),
+            ViewAction::make()->label('Review'),
+        ]);
+    }
+
+    public static function infolist(Schema $schema): Schema
+    {
+        return $schema->components([
+            Section::make('Payment review')->schema([
+                TextEntry::make('status')->badge()->placeholder('Not submitted'),
+                TextEntry::make('sender_name')->label('Sender')->placeholder('Not submitted'),
+                TextEntry::make('documents_submitted_at')->label('Submitted at')->dateTime()->placeholder('Not submitted'),
+                TextEntry::make('verified_at')->label('Verified at')->dateTime()->placeholder('Not verified'),
+                TextEntry::make('verifier.name')->label('Reviewed by')->placeholder('Not reviewed'),
+                TextEntry::make('review_note')->label('Review note')->placeholder('No review note')->columnSpanFull(),
+                TextEntry::make('registration.team.documents_drive_url')->label('Google Drive folder')
+                    ->url(fn (Payment $record): ?string => $record->registration->team->documents_drive_url)
+                    ->openUrlInNewTab()->placeholder('Not submitted')->columnSpanFull(),
+            ])->columns(2),
+            Section::make('Registration')->schema([
+                TextEntry::make('registration.team.name')->label('Team'),
+                TextEntry::make('registration.team.institution')->label('Institution'),
+                TextEntry::make('registration.competition.name')->label('Competition'),
+                TextEntry::make('registration.competition.registration_fee')->label('Amount due')->money('IDR'),
+                TextEntry::make('registration.team.captain.name')->label('Captain'),
+                TextEntry::make('registration.team.captain.email')->label('Captain email')->copyable(),
+                RepeatableEntry::make('registration.team.members')->label('Members')->schema([
+                    TextEntry::make('name'),
+                    TextEntry::make('email')->copyable(),
+                    TextEntry::make('whatsapp')->label('WhatsApp')->copyable(),
+                ])->columns(3)->columnSpanFull(),
+            ])->columns(2),
         ]);
     }
 
     public static function getPages(): array
     {
-        return ['index' => ListPayments::route('/')];
+        return [
+            'index' => ListPayments::route('/'),
+            'view' => ViewPayment::route('/{record}'),
+        ];
     }
 }

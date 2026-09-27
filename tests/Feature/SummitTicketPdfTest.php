@@ -1,18 +1,13 @@
 <?php
 
-use App\Contracts\SummitTicketStorage;
+use App\Enums\SummitTicketStatus;
+use App\Models\SummitOrder;
 use App\Models\SummitTicket;
+use App\Models\User;
 use App\Services\SummitTicketPdf;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\Fakes\FakeSummitTicketStorage;
 
 uses(RefreshDatabase::class);
-
-beforeEach(function () {
-    $storage = new FakeSummitTicketStorage;
-    $this->app->instance(SummitTicketStorage::class, $storage);
-    $this->ticketStorage = $storage;
-});
 
 test('a ticket renders to a valid pdf document', function () {
     $ticket = SummitTicket::factory()->create();
@@ -23,17 +18,32 @@ test('a ticket renders to a valid pdf document', function () {
     expect($html)
         ->toContain($ticket->ticket_code)
         ->toContain($ticket->holder_name);
-
     expect($pdf)->toStartWith('%PDF')->and(strlen($pdf))->toBeGreaterThan(1000);
 });
 
-test('a rendered pdf can be stored as a private summit ticket file', function () {
-    $ticket = SummitTicket::factory()->create();
+test('an active ticket pdf is generated on demand for its buyer', function () {
+    $buyer = User::factory()->create();
+    $order = SummitOrder::factory()->for($buyer)->create();
+    $ticket = SummitTicket::factory()
+        ->for($order, 'order')
+        ->create(['status' => SummitTicketStatus::Active, 'pdf_url' => null, 'pdf_file_id' => null]);
 
-    $pdf = app(SummitTicketPdf::class)->render($ticket);
-    $stored = app(SummitTicketStorage::class)->store($ticket->ticket_code.'.pdf', $pdf);
+    $response = $this->actingAs($buyer)->get(route('dashboard.summit-ticket.download', $ticket));
 
-    expect($stored->url)->toContain('/catalyst/summit-tickets/')
-        ->and($stored->fileId)->not->toBeEmpty()
-        ->and($this->ticketStorage->stored)->toHaveCount(1);
+    $response->assertOk()
+        ->assertHeader('Content-Type', 'application/pdf')
+        ->assertHeader('Content-Disposition', 'attachment; filename="summit-ticket-'.$ticket->ticket_code.'.pdf"');
+
+    expect($response->getContent())->toStartWith('%PDF');
+});
+
+test('a user cannot download another buyer ticket', function () {
+    $order = SummitOrder::factory()->for(User::factory())->create();
+    $ticket = SummitTicket::factory()->for($order, 'order')->create([
+        'status' => SummitTicketStatus::Active,
+    ]);
+
+    $this->actingAs(User::factory()->create())
+        ->get(route('dashboard.summit-ticket.download', $ticket))
+        ->assertForbidden();
 });
