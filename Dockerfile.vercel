@@ -30,6 +30,8 @@ RUN cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
 
 WORKDIR /app
 
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
 COPY composer.json composer.lock ./
 RUN composer install --no-dev --no-interaction --no-progress --no-scripts
 
