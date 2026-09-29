@@ -1,5 +1,6 @@
 {
     "$schema": "https://openapi.vercel.sh/vercel.json",
+    "regions": ["sin1"],
     "services": {
         "app": {
             "root": ".",
@@ -7,6 +8,17 @@
             "runtime": "container"
         }
     },
+    "headers": [
+        {
+            "source": "/build/(.*)",
+            "headers": [
+                {
+                    "key": "Cache-Control",
+                    "value": "public, max-age=31536000, immutable"
+                }
+            ]
+        }
+    ],
     "rewrites": [
         {
             "source": "/(.*)",
