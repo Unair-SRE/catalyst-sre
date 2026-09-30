@@ -48,6 +48,11 @@ class CompetitionResource extends Resource
                 ->unique(ignoreRecord: true),
             TextInput::make('name')->required()->maxLength(120),
             Textarea::make('description')->columnSpanFull(),
+            TextInput::make('wa_group_url')
+                ->label('WhatsApp group URL')
+                ->url()
+                ->maxLength(2048)
+                ->columnSpanFull(),
             TextInput::make('registration_fee')
                 ->required()
                 ->numeric()

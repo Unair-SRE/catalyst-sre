@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'code',
     'name',
     'description',
+    'wa_group_url',
     'registration_fee',
     'registration_open',
     'registration_start_at',
