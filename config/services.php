@@ -37,7 +37,7 @@ return [
 
     'catalyst' => [
         'guidebook_url' => env('CATALYST_GUIDEBOOK_URL'),
-        'qris_asset' => 'images/payment/qris-catalyst.png',
+        'qris_asset' => 'images/payment/qris-catalyst.jpeg',
     ],
 
     'cloudinary' => [
