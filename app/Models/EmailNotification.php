@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
     'user_id',
+    'summit_order_id',
     'recipient_email',
     'type',
     'status',
@@ -28,6 +29,11 @@ class EmailNotification extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function summitOrder(): BelongsTo
+    {
+        return $this->belongsTo(SummitOrder::class);
     }
 
     public function markSent(): void

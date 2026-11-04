@@ -85,6 +85,7 @@ class VerifySummitOrder
 
         $notification = EmailNotification::query()->create([
             'user_id' => $buyer->getKey(),
+            'summit_order_id' => $verifiedOrder->id,
             'recipient_email' => $buyer->email,
             'type' => 'SUMMIT_ORDER_APPROVED',
             'status' => EmailStatus::Pending,
