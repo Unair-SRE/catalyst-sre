@@ -6,6 +6,7 @@ use App\Actions\Summit\CreateSummitOrder;
 use App\Actions\Summit\VerifySummitOrder;
 use App\Enums\EmailStatus;
 use App\Enums\UserRole;
+use App\Filament\Resources\EmailNotifications\EmailNotificationResource;
 use App\Jobs\SendSummitOrderEmail;
 use App\Models\EmailNotification;
 use App\Models\PaymentSetting;
@@ -79,3 +80,16 @@ test('a non-admin cannot retry a notification', function () {
 
     app(RetryEmailNotification::class)->handle($buyer, $log);
 })->throws(AuthorizationException::class);
+
+test('administrators can browse the email log in filament', function () {
+    $admin = emailRetryAdmin();
+    $participant = User::factory()->create();
+
+    $this->actingAs($admin)
+        ->get(EmailNotificationResource::getUrl('index'))
+        ->assertOk();
+
+    $this->actingAs($participant)
+        ->get(EmailNotificationResource::getUrl('index'))
+        ->assertForbidden();
+});
