@@ -40,6 +40,11 @@ class Competition extends Model
         return $this->hasMany(Registration::class);
     }
 
+    public function rounds(): HasMany
+    {
+        return $this->hasMany(CompetitionRound::class);
+    }
+
     public function acceptsRegistration(): bool
     {
         if (! $this->registration_open) {
