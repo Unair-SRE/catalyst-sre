@@ -2,8 +2,11 @@
 
 namespace App\Actions\Summit;
 
+use App\Enums\EmailStatus;
 use App\Enums\SummitOrderStatus;
 use App\Enums\SummitTicketStatus;
+use App\Jobs\SendSummitOrderEmail;
+use App\Models\EmailNotification;
 use App\Models\SummitOrder;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -29,14 +32,14 @@ class VerifySummitOrder
             ]);
         }
 
-        return DB::transaction(function () use ($admin, $order): SummitOrder {
+        [$verifiedOrder, $didTransition] = DB::transaction(function () use ($admin, $order): array {
             $lockedOrder = SummitOrder::query()
                 ->with('tickets')
                 ->lockForUpdate()
                 ->findOrFail($order->id);
 
             if ($lockedOrder->payment_status === SummitOrderStatus::Verified) {
-                return $lockedOrder;
+                return [$lockedOrder, false];
             }
 
             if (! $lockedOrder->hasPaymentEvidence() || $lockedOrder->payment_status !== SummitOrderStatus::WaitingVerification) {
@@ -62,7 +65,31 @@ class VerifySummitOrder
                 'admin_id' => $admin->id,
             ]);
 
-            return $lockedOrder->fresh('tickets');
+            return [$lockedOrder->fresh('tickets'), true];
         });
+
+        if ($didTransition) {
+            $this->dispatchTicketEmail($verifiedOrder);
+        }
+
+        return $verifiedOrder;
+    }
+
+    private function dispatchTicketEmail(SummitOrder $verifiedOrder): void
+    {
+        $buyer = $verifiedOrder->user ?? $verifiedOrder->user()->first();
+
+        if ($buyer === null) {
+            return;
+        }
+
+        $notification = EmailNotification::query()->create([
+            'user_id' => $buyer->getKey(),
+            'recipient_email' => $buyer->email,
+            'type' => 'SUMMIT_ORDER_APPROVED',
+            'status' => EmailStatus::Pending,
+        ]);
+
+        SendSummitOrderEmail::dispatch($notification->id, $verifiedOrder->id);
     }
 }
