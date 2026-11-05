@@ -5,9 +5,11 @@ namespace App\Livewire\Dashboard;
 use App\Actions\Registrations\RegisterTeam;
 use App\Enums\CompetitionCode;
 use App\Enums\PaymentStatus;
+use App\Enums\QualificationStatus;
 use App\Models\Competition;
 use App\Models\Registration;
 use App\Models\Team;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -60,8 +62,9 @@ class CompetitionRegistrationDetail extends Component
         $blockReason = $this->blockReason();
         $paymentStatus = $this->paymentStatus($registration);
         $paymentUrl = $registration ? route('dashboard.registration.payment', $this->competition) : null;
+        $publishedResults = $this->publishedResults($competitionModel, $registration);
 
-        return view('livewire.dashboard.competition-registration-detail', compact('competitionModel', 'team', 'registration', 'canRegister', 'blockReason', 'paymentStatus', 'paymentUrl'));
+        return view('livewire.dashboard.competition-registration-detail', compact('competitionModel', 'team', 'registration', 'canRegister', 'blockReason', 'paymentStatus', 'paymentUrl', 'publishedResults'));
     }
 
     private function competitionModel(): Competition
@@ -113,6 +116,43 @@ class CompetitionRegistrationDetail extends Component
         }
 
         return null;
+    }
+
+    /** @return Collection<int, array{name: string, label: string, tone: string}> */
+    private function publishedResults(Competition $competition, ?Registration $registration): Collection
+    {
+        if ($registration === null) {
+            return collect();
+        }
+
+        $rounds = $competition->rounds()->whereNotNull('published_at')->orderBy('round_order')->get();
+
+        if ($rounds->isEmpty()) {
+            return collect();
+        }
+
+        $resultsByRound = $registration->qualificationResults()
+            ->whereIn('competition_round_id', $rounds->pluck('id'))
+            ->get()
+            ->keyBy('competition_round_id');
+
+        return $rounds->map(function ($round) use ($resultsByRound): array {
+            $status = $resultsByRound->get($round->id)?->status;
+
+            return [
+                'name' => $round->name,
+                'label' => match ($status) {
+                    QualificationStatus::Qualified => 'Qualified',
+                    QualificationStatus::NotQualified => 'Not qualified',
+                    default => 'Awaiting decision',
+                },
+                'tone' => match ($status) {
+                    QualificationStatus::Qualified => 'success',
+                    QualificationStatus::NotQualified => 'error',
+                    default => 'neutral',
+                },
+            ];
+        });
     }
 
     private function paymentStatus(?Registration $registration): array
