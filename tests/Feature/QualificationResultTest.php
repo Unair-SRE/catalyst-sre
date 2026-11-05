@@ -6,6 +6,9 @@ use App\Enums\CompetitionCode;
 use App\Enums\QualificationStatus;
 use App\Enums\RegistrationStatus;
 use App\Enums\UserRole;
+use App\Filament\Resources\CompetitionRounds\CompetitionRoundResource;
+use App\Filament\Resources\QualificationResults\QualificationResultResource;
+use App\Livewire\Dashboard\CompetitionRegistrationDetail;
 use App\Models\Competition;
 use App\Models\CompetitionRound;
 use App\Models\Registration;
@@ -14,6 +17,7 @@ use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Validation\ValidationException;
+use Livewire\Livewire;
 
 uses(RefreshDatabase::class);
 
@@ -132,3 +136,45 @@ test('a non-admin cannot record or publish results', function () {
 
     app(SetQualificationResult::class)->handle($outsider, $registration, $round, QualificationStatus::Qualified);
 })->throws(AuthorizationException::class);
+
+test('captains see only published results on their registration page', function () {
+    $admin = resultAdmin();
+    $registration = verifiedRegistrationFixture();
+    $published = roundFixture($registration->competition, 1, 'Penyisihan');
+    $hidden = roundFixture($registration->competition, 2, 'Semifinal');
+
+    app(SetQualificationResult::class)->handle($admin, $registration, $published, QualificationStatus::Qualified);
+    app(SetQualificationResult::class)->handle($admin, $registration, $hidden, QualificationStatus::Qualified);
+    app(PublishCompetitionRound::class)->handle($admin, $published);
+
+    Livewire::actingAs($registration->team->captain)
+        ->test(CompetitionRegistrationDetail::class, ['competition' => strtolower($registration->competition->code->value)])
+        ->assertSee('Selection results')
+        ->assertSee('Penyisihan')
+        ->assertSee('Qualified')
+        ->assertDontSee('Semifinal');
+
+    $unregistered = Team::factory()->create();
+    Livewire::actingAs($unregistered->captain)
+        ->test(CompetitionRegistrationDetail::class, ['competition' => strtolower($registration->competition->code->value)])
+        ->assertDontSee('Selection results');
+});
+
+test('administrators can browse rounds and results while participants cannot', function () {
+    $admin = resultAdmin();
+    $participant = User::factory()->create(['email_verified_at' => now()]);
+
+    $this->actingAs($admin)
+        ->get(CompetitionRoundResource::getUrl('index'))
+        ->assertOk();
+    $this->actingAs($admin)
+        ->get(QualificationResultResource::getUrl('index'))
+        ->assertOk();
+
+    $this->actingAs($participant)
+        ->get(CompetitionRoundResource::getUrl('index'))
+        ->assertForbidden();
+    $this->actingAs($participant)
+        ->get(QualificationResultResource::getUrl('index'))
+        ->assertForbidden();
+});
