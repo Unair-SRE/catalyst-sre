@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Contracts\SubmissionFileInspector;
+use App\Services\CloudinarySubmissionInspector;
 use Illuminate\Foundation\Console\ServeCommand;
 use Illuminate\Foundation\DevCommands;
 use Illuminate\Support\Facades\File;
@@ -14,8 +16,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        // Participant documents and payment proofs live in their respective
-        // Google Drive folders. Summit ticket PDFs are rendered on demand.
+        $this->app->bind(SubmissionFileInspector::class, CloudinarySubmissionInspector::class);
     }
 
     /**
