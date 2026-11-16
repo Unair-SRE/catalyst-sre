@@ -17,6 +17,8 @@ class CompetitionRoundsTable
                 TextColumn::make('competition.code')->label('Competition')->badge()->sortable(),
                 TextColumn::make('name')->label('Stage')->searchable()->sortable(),
                 TextColumn::make('round_order')->label('Order')->sortable(),
+                TextColumn::make('starts_at')->label('Opens')->dateTime()->timezone('Asia/Jakarta')->sortable()->placeholder('—'),
+                TextColumn::make('ends_at')->label('Closes')->dateTime()->timezone('Asia/Jakarta')->sortable()->placeholder('—'),
                 TextColumn::make('results_count')->label('Results')->counts('results')->sortable(),
                 TextColumn::make('published_at')->label('Published')->dateTime()->sortable()->placeholder('—'),
             ])

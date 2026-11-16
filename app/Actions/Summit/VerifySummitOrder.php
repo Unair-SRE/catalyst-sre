@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class VerifySummitOrder
 {
@@ -91,6 +92,10 @@ class VerifySummitOrder
             'status' => EmailStatus::Pending,
         ]);
 
-        SendSummitOrderEmail::dispatch($notification->id, $verifiedOrder->id);
+        try {
+            SendSummitOrderEmail::dispatch($notification->id, $verifiedOrder->id);
+        } catch (Throwable $exception) {
+            report($exception);
+        }
     }
 }

@@ -51,6 +51,8 @@ class CompetitionRoundResource extends Resource
                 TextEntry::make('competition.name')->label('Competition'),
                 TextEntry::make('name')->label('Stage'),
                 TextEntry::make('round_order')->label('Order'),
+                TextEntry::make('starts_at')->label('Submission opens')->dateTime()->timezone('Asia/Jakarta')->placeholder('Not scheduled'),
+                TextEntry::make('ends_at')->label('Submission closes')->dateTime()->timezone('Asia/Jakarta')->placeholder('Not scheduled'),
                 TextEntry::make('published_at')->label('Published at')->dateTime()->placeholder('Not published'),
                 TextEntry::make('publisher.name')->label('Published by')->placeholder('—'),
             ])->columns(2),

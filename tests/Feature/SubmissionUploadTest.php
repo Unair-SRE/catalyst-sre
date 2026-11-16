@@ -25,7 +25,8 @@ beforeEach(function () {
     $this->inspector = $inspector;
 
     config()->set('services.cloudinary.cloud_name', 'demo');
-    config()->set('services.cloudinary.upload_preset', 'catalyst-unsigned');
+    config()->set('services.cloudinary.api_key', '123456789');
+    config()->set('services.cloudinary.api_secret', 'secret');
 });
 
 function verifiedSubmissionRegistration(): Registration
@@ -55,7 +56,6 @@ function storedSubmissionFile(Registration $registration, CompetitionRound $roun
 {
     return new SubmissionFile(
         publicId: "catalyst/submissions/{$registration->id}/{$round->id}/{$suffix}",
-        folder: "catalyst/submissions/{$registration->id}/{$round->id}",
         format: 'pdf',
         bytes: 1_200_000,
         url: 'https://res.cloudinary.com/demo/raw/upload/v1/file.pdf',
@@ -63,18 +63,44 @@ function storedSubmissionFile(Registration $registration, CompetitionRound $roun
     );
 }
 
-test('a captain receives upload parameters scoped to their submission', function () {
+test('a captain receives signed upload parameters scoped to their submission', function () {
     $registration = verifiedSubmissionRegistration();
     $round = openSubmissionRound($registration);
 
     $params = app(RequestSubmissionUpload::class)->handle(
-        $registration->team->captain, $registration, $round,
+        $registration->team->captain, $registration, $round, 'pdf',
     );
 
-    expect($params['folder'])->toBe("catalyst/submissions/{$registration->id}/{$round->id}")
+    $prefix = "catalyst/submissions/{$registration->id}/{$round->id}/";
+
+    expect($params['cloud_name'])->toBe('demo')
+        ->and($params['resource_type'])->toBe('image')
         ->and($params['max_bytes'])->toBe(5 * 1024 * 1024)
-        ->and($params['allowed_formats'])->toBe(['pdf', 'ppt', 'pptx']);
+        ->and($params['allowed_formats'])->toBe(['pdf', 'ppt', 'pptx'])
+        ->and($params['params']['public_id'])->toStartWith($prefix)
+        ->and($params['params']['type'])->toBe('authenticated')
+        ->and($params['params']['api_key'])->toBe('123456789')
+        ->and($params['params']['signature'])->not->toBeEmpty();
 });
+
+test('raw formats keep their extension and use the raw resource type', function () {
+    $registration = verifiedSubmissionRegistration();
+    $round = openSubmissionRound($registration);
+
+    $params = app(RequestSubmissionUpload::class)->handle(
+        $registration->team->captain, $registration, $round, 'PPTX',
+    );
+
+    expect($params['resource_type'])->toBe('raw')
+        ->and($params['params']['public_id'])->toEndWith('.pptx');
+});
+
+test('unsupported file extensions are refused before upload', function () {
+    $registration = verifiedSubmissionRegistration();
+    $round = openSubmissionRound($registration);
+
+    app(RequestSubmissionUpload::class)->handle($registration->team->captain, $registration, $round, 'exe');
+})->throws(ValidationException::class, 'Only PDF');
 
 test('upload parameters are refused for an unverified registration', function () {
     $registration = verifiedSubmissionRegistration();
@@ -83,7 +109,7 @@ test('upload parameters are refused for an unverified registration', function ()
     $pending = verifiedSubmissionRegistration();
     $pending->update(['status' => RegistrationStatus::Pending]);
 
-    app(RequestSubmissionUpload::class)->handle($pending->team->captain, $pending, openSubmissionRound($pending));
+    app(RequestSubmissionUpload::class)->handle($pending->team->captain, $pending, openSubmissionRound($pending), 'pdf');
 })->throws(ValidationException::class);
 
 test('upload parameters are refused for a round of another competition', function () {
@@ -93,10 +119,10 @@ test('upload parameters are refused for a round of another competition', functio
     $other = Competition::factory()->create(['code' => $otherCode]);
     $foreignRound = CompetitionRound::factory()->for($other)->create(['name' => 'X', 'round_order' => 1]);
 
-    app(RequestSubmissionUpload::class)->handle($registration->team->captain, $registration, $foreignRound);
+    app(RequestSubmissionUpload::class)->handle($registration->team->captain, $registration, $foreignRound, 'pdf');
 })->throws(ValidationException::class);
 
-test('upload parameters are refused outside the stage window', function () {
+test('upload parameters are refused after the deadline', function () {
     $registration = verifiedSubmissionRegistration();
     $round = CompetitionRound::factory()->for($registration->competition)->create([
         'name' => 'Late',
@@ -105,8 +131,30 @@ test('upload parameters are refused outside the stage window', function () {
         'ends_at' => now()->subWeek(),
     ]);
 
-    app(RequestSubmissionUpload::class)->handle($registration->team->captain, $registration, $round);
-})->throws(ValidationException::class);
+    app(RequestSubmissionUpload::class)->handle($registration->team->captain, $registration, $round, 'pdf');
+})->throws(ValidationException::class, 'deadline has passed');
+
+test('upload parameters are refused while the stage is upcoming', function () {
+    $registration = verifiedSubmissionRegistration();
+    $round = CompetitionRound::factory()->for($registration->competition)->create([
+        'name' => 'Soon',
+        'round_order' => 1,
+        'starts_at' => now()->addDay(),
+        'ends_at' => now()->addWeek(),
+    ]);
+
+    app(RequestSubmissionUpload::class)->handle($registration->team->captain, $registration, $round, 'pdf');
+})->throws(ValidationException::class, 'not opened yet');
+
+test('upload parameters are refused while the stage has no schedule', function () {
+    $registration = verifiedSubmissionRegistration();
+    $round = CompetitionRound::factory()->for($registration->competition)->create([
+        'name' => 'Unscheduled',
+        'round_order' => 1,
+    ]);
+
+    app(RequestSubmissionUpload::class)->handle($registration->team->captain, $registration, $round, 'pdf');
+})->throws(ValidationException::class, 'not been scheduled');
 
 test('confirming stores a versioned immutable submission record', function () {
     $registration = verifiedSubmissionRegistration();
@@ -149,11 +197,11 @@ test('confirming rejects a file that was never uploaded', function () {
     );
 })->throws(ValidationException::class, 'could not be found');
 
-test('confirming rejects a file from another folder', function () {
+test('confirming rejects a file outside the round prefix', function () {
     $registration = verifiedSubmissionRegistration();
     $round = openSubmissionRound($registration);
     $foreign = new SubmissionFile(
-        'catalyst/submissions/999/999/other.pdf', 'catalyst/submissions/999/999', 'pdf', 100, 'https://x/y.pdf', null,
+        'catalyst/submissions/999/999/other.pdf', 'pdf', 100, 'https://x/y.pdf', null,
     );
     test()->inspector->files[$foreign->publicId] = $foreign;
 
@@ -167,7 +215,6 @@ test('confirming rejects a disallowed format', function () {
     $round = openSubmissionRound($registration);
     $file = new SubmissionFile(
         "catalyst/submissions/{$registration->id}/{$round->id}/run.exe",
-        "catalyst/submissions/{$registration->id}/{$round->id}",
         'exe', 100, 'https://x/y.exe', null,
     );
     test()->inspector->files[$file->publicId] = $file;
@@ -182,7 +229,6 @@ test('confirming rejects an oversized file', function () {
     $round = openSubmissionRound($registration);
     $file = new SubmissionFile(
         "catalyst/submissions/{$registration->id}/{$round->id}/big.pdf",
-        "catalyst/submissions/{$registration->id}/{$round->id}",
         'pdf', 6 * 1024 * 1024, 'https://x/y.pdf', null,
     );
     test()->inspector->files[$file->publicId] = $file;
@@ -210,5 +256,5 @@ test('a non-captain cannot request or confirm a submission', function () {
     $round = openSubmissionRound($registration);
     $outsider = User::factory()->create(['email_verified_at' => now()]);
 
-    app(RequestSubmissionUpload::class)->handle($outsider, $registration, $round);
+    app(RequestSubmissionUpload::class)->handle($outsider, $registration, $round, 'pdf');
 })->throws(AuthorizationException::class);

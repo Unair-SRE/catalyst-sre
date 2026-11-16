@@ -26,55 +26,33 @@
                                         <p class="text-xs font-medium tracking-widest text-catalyst-muted">{{ $item['competition']['short_name'] }}</p>
                                         <h2 class="mt-3 font-display text-2xl font-semibold tracking-tight text-catalyst-black">{{ $item['competition']['name'] }}</h2>
                                     </div>
-                                    <x-dashboard.status-pill :label="$item['access']['label']" :tone="$item['access']['tone']" />
+                                    <x-dashboard.status-pill :label="$item['registration']['label']" :tone="$item['registration']['tone']" />
                                 </div>
 
-                                <div class="mt-6 border-catalyst-grey/30 border-t pt-5">
-                                    <p class="text-sm font-medium text-catalyst-ink">{{ $item['stage']['name'] }}</p>
-                                    @if ($item['registration_status'] !== 'VERIFIED')
-                                        <p class="mt-2 text-sm leading-6 text-catalyst-ink/70">Registration verification required before submission becomes available.</p>
-                                    @elseif ($item['stage_state'] === 'upcoming')
-                                        <p class="mt-2 text-sm leading-6 text-catalyst-ink/70">Opens <time datetime="{{ $item['stage']['open_at'] }}">{{ $item['stage']['open_label'] }}</time>.</p>
-                                    @elseif ($item['submitted_label'])
-                                        <p class="mt-2 text-sm leading-6 text-catalyst-ink/70">Submitted <time datetime="{{ $item['submitted_at'] }}">{{ $item['submitted_label'] }}</time>.</p>
-                                    @else
-                                        <p class="mt-2 text-sm leading-6 text-catalyst-ink/70">Deadline <time datetime="{{ $item['stage']['deadline_at'] }}">{{ $item['stage']['deadline_label'] }}</time>.</p>
-                                    @endif
-                                </div>
-
-                                <dl class="mt-5 grid grid-cols-2 gap-3 text-sm">
-                                    <div>
-                                        <dt class="text-catalyst-muted">Registration</dt>
-                                        <dd class="mt-1"><x-dashboard.status-pill :label="$item['registration']['label']" :tone="$item['registration']['tone']" /></dd>
-                                    </div>
-                                    <div>
-                                        <dt class="text-catalyst-muted">Stage</dt>
-                                        <dd class="mt-1"><x-dashboard.status-pill :label="$item['stage_lifecycle']['label']" :tone="$item['stage_lifecycle']['tone']" /></dd>
-                                    </div>
-                                    <div>
-                                        <dt class="text-catalyst-muted">Submission</dt>
-                                        <dd class="mt-1"><x-dashboard.status-pill :label="$item['submission']['label']" :tone="$item['submission']['tone']" /></dd>
-                                    </div>
-                                </dl>
-
-                                <a class="mt-auto inline-flex min-h-11 items-center justify-center bg-catalyst-primary px-4 py-3 text-sm font-medium text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-catalyst-primary sm:self-start" href="{{ $item['href'] }}">{{ $item['cta'] }}</a>
+                                @if ($item['rounds'] === [])
+                                    <p class="border-catalyst-grey/30 border-t pt-5 text-sm leading-6 text-catalyst-ink/70">The committee has not published any stages for this competition yet.</p>
+                                @else
+                                    <ul class="border-catalyst-grey/30 border-t pt-5">
+                                        @foreach ($item['rounds'] as $round)
+                                            <li class="border-catalyst-grey/20 border-b py-4 first:pt-0 last:border-b-0 last:pb-0">
+                                                <div class="flex items-start justify-between gap-3">
+                                                    <p class="text-sm font-medium text-catalyst-ink">{{ $round['name'] }}</p>
+                                                    <x-dashboard.status-pill :label="$round['label']" :tone="$round['tone']" />
+                                                </div>
+                                                <p class="mt-2 text-sm leading-6 text-catalyst-ink/70">{{ $round['note'] }}</p>
+                                                @if ($round['href'])
+                                                    <a class="mt-3 inline-flex min-h-11 items-center text-sm font-medium text-catalyst-primary underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-catalyst-primary" href="{{ $round['href'] }}">{{ $round['cta'] }}</a>
+                                                @endif
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                @endif
                             </article>
                         @endforeach
                     </div>
                 </section>
             @endif
 
-            <details class="border border-catalyst-grey/30 bg-white p-4">
-                <summary class="cursor-pointer text-sm font-medium text-catalyst-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-catalyst-primary">Prototype state</summary>
-                <div class="mt-4 max-w-xs">
-                    <label class="block text-sm text-catalyst-ink/80" for="submission-index-scenario">Review scenario</label>
-                    <select id="submission-index-scenario" class="mt-2 w-full border border-catalyst-grey/50 bg-white px-3 py-2 text-sm text-catalyst-ink focus:border-catalyst-primary focus:outline-none" wire:model.live="scenario">
-                        @foreach ($scenarios as $value => $label)
-                            <option value="{{ $value }}">{{ $label }}</option>
-                        @endforeach
-                    </select>
-                </div>
-            </details>
         </div>
     </x-ui.container>
 </div>

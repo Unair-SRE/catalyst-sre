@@ -12,6 +12,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'competition_id',
     'name',
     'round_order',
+    'starts_at',
+    'ends_at',
     'published_at',
     'published_by',
 ])]
@@ -23,8 +25,26 @@ class CompetitionRound extends Model
     protected function casts(): array
     {
         return [
+            'starts_at' => 'datetime',
+            'ends_at' => 'datetime',
             'published_at' => 'datetime',
         ];
+    }
+
+    /**
+     * @return 'unscheduled'|'upcoming'|'open'|'closed'
+     */
+    public function windowState(): string
+    {
+        if ($this->starts_at === null || $this->ends_at === null) {
+            return 'unscheduled';
+        }
+
+        return match (true) {
+            now()->lt($this->starts_at) => 'upcoming',
+            now()->gt($this->ends_at) => 'closed',
+            default => 'open',
+        };
     }
 
     public function competition(): BelongsTo

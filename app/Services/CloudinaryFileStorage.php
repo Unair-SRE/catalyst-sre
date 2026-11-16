@@ -27,16 +27,21 @@ class CloudinaryFileStorage
         return new CloudinaryStoredFile($url, $publicId);
     }
 
-    public function signedUrl(string $publicId, string $resourceType = 'image'): string
-    {
-        $asset = $resourceType === 'raw'
-            ? $this->client()->raw($publicId)
-            : $this->client()->image($publicId);
-
-        $url = (string) $asset->deliveryType('private')->signUrl()->toUrl();
+    public function downloadUrl(
+        string $publicId,
+        string $format,
+        string $resourceType = 'image',
+        string $deliveryType = 'authenticated',
+        int $minutes = 10,
+    ): string {
+        $url = $this->client()->uploadApi()->privateDownloadUrl($publicId, $format, [
+            'resource_type' => $resourceType,
+            'type' => $deliveryType,
+            'expires_at' => now()->addMinutes($minutes)->getTimestamp(),
+        ]);
 
         if ($url === '') {
-            throw new RuntimeException('Cloudinary could not generate a signed URL.');
+            throw new RuntimeException('Cloudinary could not generate a download URL.');
         }
 
         return $url;

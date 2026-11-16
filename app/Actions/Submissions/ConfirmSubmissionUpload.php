@@ -32,7 +32,7 @@ class ConfirmSubmissionUpload
             ]);
         }
 
-        if ($file->folder !== $expectedFolder) {
+        if (! str_starts_with($file->publicId, $expectedFolder.'/')) {
             throw ValidationException::withMessages([
                 'file' => 'The uploaded file does not belong to this submission.',
             ]);
@@ -72,8 +72,7 @@ class ConfirmSubmissionUpload
                 ]);
             }
 
-            if (($lockedRound->starts_at !== null && now()->isBefore($lockedRound->starts_at))
-                || ($lockedRound->ends_at !== null && now()->isAfter($lockedRound->ends_at))) {
+            if ($lockedRound->windowState() !== 'open') {
                 throw ValidationException::withMessages([
                     'round' => 'Submissions are closed for this stage.',
                 ]);

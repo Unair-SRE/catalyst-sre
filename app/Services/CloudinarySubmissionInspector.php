@@ -12,11 +12,11 @@ class CloudinarySubmissionInspector implements SubmissionFileInspector
 {
     public function inspect(string $publicId): ?SubmissionFile
     {
-        foreach (['raw', 'image'] as $resourceType) {
+        foreach (['image', 'raw'] as $resourceType) {
             try {
                 $asset = $this->client()->adminApi()->asset($publicId, [
                     'resource_type' => $resourceType,
-                    'type' => 'private',
+                    'type' => 'authenticated',
                 ]);
             } catch (Throwable) {
                 continue;
@@ -26,18 +26,21 @@ class CloudinarySubmissionInspector implements SubmissionFileInspector
                 continue;
             }
 
-            $folder = $asset['folder'] ?? null;
+            $assetId = is_string($asset['public_id'] ?? null) ? $asset['public_id'] : $publicId;
             $format = $asset['format'] ?? null;
+            // Raw uploads keep the extension in the public id and may not report a format.
+            $format = is_string($format) && $format !== ''
+                ? strtolower($format)
+                : strtolower(pathinfo($assetId, PATHINFO_EXTENSION));
             $bytes = $asset['bytes'] ?? null;
 
-            if (! is_string($folder) || ! is_string($format) || ! is_int($bytes)) {
+            if ($format === '' || ! is_int($bytes)) {
                 continue;
             }
 
             return new SubmissionFile(
-                publicId: (string) ($asset['public_id'] ?? $publicId),
-                folder: $folder,
-                format: strtolower($format),
+                publicId: $assetId,
+                format: $format,
                 bytes: $bytes,
                 url: (string) ($asset['secure_url'] ?? ''),
                 etag: isset($asset['etag']) && is_string($asset['etag']) ? $asset['etag'] : null,
